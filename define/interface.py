@@ -6,7 +6,7 @@ class IMsg:
 
 
 class ConfigMsg:
-    NOT_INIT = "配置为初始化"
+    NOT_INIT = "配置未初始化"
     ILLEGAL_SOURCE = "来源配置非法"
 
 
