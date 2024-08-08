@@ -22,15 +22,17 @@ class ISiyuan(IBase):
 
     @classmethod
     async def receive(cls, resource: SiyuanBlockResource, log_level=logging.DEBUG):
-        if not (file_data := resource.get_file_data()):
+        """保存资源到思源assets"""
+        if not (web_file_data := resource.get_file_data()):
             return False  # 请求失败
+        web_file_info = get_file_info(web_file_data)
         # 检查请求是否成功
         save_path, new_url = cls._GetSaveInfo(None, resource.filename)
         # 以二进制方式写入文件
-        if posixpath.exists(save_path) and get_file_info(file_data) == await get_file_info_by_type(save_path, resource.typ):
+        if posixpath.exists(save_path) and web_file_info == await get_file_info_by_type(save_path, resource.typ):
             interface_log.warning(f"SiyuanTools.save_download_resource | info:图片在本地已经存在 img_url:{resource.url} save_path:{save_path}")
         else:
-            await async_save_data_to_local_file(save_path, file_data)
+            await async_save_data_to_local_file(save_path, web_file_data)
         interface_log.log(log_level, f"SiyuanTools.save_download_resource | info:图片已成功保存 img_url:{resource.url} save_path:{save_path}")
         return new_url
 
