@@ -84,10 +84,10 @@ class CheckAction(metaclass=SingletonMeta):
                 _file = miss.setdefault(file["filename"], {})
                 _file.setdefault(file["etag"], []).append(file["fileId"])
                 amount += 1
-        action_log.info(f"无引用资源数量 | amount:{amount}")
         if amount > 0:
             for filename, info in miss.items():
-                action_log.info(f"无引用资源 | filename:{filename} info:{info}")
+                action_log.info(f"CheckAction.check_no_ref_resource_in_cloud_123 | filename:{filename} info:{info}")
+        action_log.info(f"CheckAction.check_no_ref_resource_in_cloud_123 | amount:{amount}")
         if delete:
             cls.del_repeat_cloud_123(miss, save_amount=save_amount)
         if show:

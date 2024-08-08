@@ -30,6 +30,7 @@ class SiyuanControl(metaclass=SingletonMeta):
                 return
             resource_dict[block["id"]] = block_resource
 
+        control_log.info(f"ISiyuan.async_quick_get_resource | total_amount: {total_amount}")
         for begin in range(0, total_amount, step):
             sql = f"select id, markdown, (select content from blocks where id=b.root_id) as title from blocks b where {where} limit {step} offset {begin};"
             response = await APISiyuan.async_sql_query(sql)
