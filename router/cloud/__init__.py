@@ -1,7 +1,7 @@
 # noqa: F403
 from fastapi import APIRouter
 
-from route.cloud import cloud_123
+from router.cloud import cloud_123
 
 router = APIRouter()
 

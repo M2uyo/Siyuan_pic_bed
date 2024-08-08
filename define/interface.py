@@ -3,6 +3,7 @@ class IMsg:
     GOOD_BYE = "Good Bye"
     OK = "Ok"
     BAN = "接口被禁用"
+    ILLEGAL_PARAMETER = "非法参数 args:{args}"
 
 
 class ConfigMsg:

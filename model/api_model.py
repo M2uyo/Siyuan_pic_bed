@@ -1,5 +1,4 @@
 from collections import UserDict
-from typing import Any
 
 from pydantic import BaseModel
 
@@ -32,8 +31,11 @@ class EmptyModel(BaseModel):
 
 
 class CheckModel(BaseModel):
-    method: str = ""
-    kwargs: dict[str, Any] = {}
+    remote: str = ""
+    renew_siyuan: bool = False
+    renew_remote: bool = False
+    show: bool = False
+    delete: bool = False
 
 
 class APIResponse(UserDict):
