@@ -163,10 +163,11 @@ class Record(metaclass=SingletonMeta):
         self.name = defaultdict(int)
         for resource in resources:
             file_dir, file_name, ext = get_file_name_and_extension(resource.image_path)
-            suffix = file_name.split('-')[-1]
+            suffix = file_name.split(setting.num_tag)[-1]
             if suffix.isdigit() and int(suffix) < 100:
                 file_name = file_name[:-len(suffix) - 1]
-            self.name[file_name.replace("-", "_") + ext] += 1
+            # 只保留不包含 num_tag 的原始文件名
+            self.name[file_name.replace(setting.num_tag, "_") + ext] += 1
         with open(posixpath.join(setting.RECORD_PATH, "siyuan_name.json"), "w", encoding="utf8") as f:
             json.dump(self.name, f, ensure_ascii=False, indent=4)
 
