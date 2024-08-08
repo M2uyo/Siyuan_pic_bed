@@ -45,7 +45,7 @@ class SiyuanControl(metaclass=SingletonMeta):
         end_point: ISiyuan = EndPointMap[end_point_enum]
         if not (new_url := await end_point.receive(resource, log_level)):
             return False
-        toast and await APISiyuan.push_msg(SiyuanMessage.下载成功_单文件.format(filename=resource.filename))
+        toast and await APISiyuan.async_push_msg(SiyuanMessage.下载成功_单文件.format(filename=resource.filename))
         await cls._UpdateInfo(resource, new_url, custom_record)
         return True
 
@@ -56,7 +56,7 @@ class SiyuanControl(metaclass=SingletonMeta):
             return False
         if not (new_url := await end_point.receive(resource, log_level)):
             return False
-        toast and await APISiyuan.push_msg(SiyuanMessage.上传成功_单文件.format(filename=resource.filename))
+        toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_单文件.format(filename=resource.filename))
         await cls._UpdateInfo(resource, new_url, custom_record)
         return True
 

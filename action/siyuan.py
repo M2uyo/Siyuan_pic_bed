@@ -27,9 +27,9 @@ class SiyuanAction(metaclass=SingletonMeta):
             for resource in resource_dict.values()
         )))
         if success_amount:
-            toast and APISiyuan.push_msg(SiyuanMessage.下载成功_汇总.format(amount=success_amount))
+            toast and await APISiyuan.async_push_msg(SiyuanMessage.下载成功_汇总.format(amount=success_amount))
         else:
-            toast and APISiyuan.push_msg(SiyuanMessage.下载成功_无更改)
+            toast and await APISiyuan.async_push_msg(SiyuanMessage.下载成功_无更改)
         await SiyuanControl.SetCustomRecord(notebook_id, custom_record)
         return resource_dict
 
@@ -43,9 +43,9 @@ class SiyuanAction(metaclass=SingletonMeta):
             for resource in resource_dict.values()
         )))
         if success_amount:
-            toast and APISiyuan.push_msg(SiyuanMessage.上传成功_汇总.format(amount=success_amount))
+            toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_汇总.format(amount=success_amount))
         else:
-            toast and APISiyuan.push_msg(SiyuanMessage.上传成功_无更改)
+            toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_无更改)
         await SiyuanControl.SetCustomRecord(notebook_id, custom_record)
         return resource_dict
 
