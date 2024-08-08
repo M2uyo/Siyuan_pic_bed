@@ -2,6 +2,7 @@ import asyncio
 import logging
 import posixpath
 import time
+from operator import itemgetter
 
 import setting
 from api.base import CommonRequest
@@ -9,7 +10,7 @@ from api.remote import APICloud123
 from base.interface import IBase
 from entity.siyuan import SiyuanBlockResource
 from log import get_logger
-from model.response import Cloud123Response
+from model.response import Cloud123Response, Cloud123FileInfo
 from tools import string
 from tools.file import split_file_context, get_file_info
 
@@ -19,7 +20,7 @@ cloud_123_log = get_logger("interface_remote")
 class ICloud123(IBase):
 
     @classmethod
-    def cloud_123_get_all_file(cls):
+    def get_all_file(cls):
         last_file_id = None
         files = []
         while True:
@@ -67,6 +68,49 @@ class ICloud123(IBase):
             cloud_123_log.debug("ICloud123.already_in | filename")
             return True
         return False
+
+    # region Check
+    @classmethod
+    def check_repeat_file(cls, ori_info: list[Cloud123FileInfo]) -> dict[str, dict[str, list]]:
+        """
+        Returns:
+            {filename: {etag: file_ids}}
+        """
+        files = {}
+        for file in sorted(ori_info, key=itemgetter("fileID"), reverse=True):
+            _file = files.setdefault(file["filename"], {})
+            _file.setdefault(file["etag"], []).append(file["fileID"])
+            _file["amount"] = 1 + _file.get("amount", 0)
+        repeats = {}
+        for filename, file_info in files.items():
+            if file_info["amount"] > 1:
+                repeats[filename] = file_info
+            file_info.pop("amount")
+        return repeats
+
+    @classmethod
+    def check_no_reference(cls, siyuan, cache, ):
+        miss = {}
+        amount = 0
+        for file in cache:
+            if file["filename"] not in siyuan:
+                _file = miss.setdefault(file["filename"], {})
+                _file.setdefault(file["etag"], []).append(file["fileId"])
+                amount += 1
+        for filename, info in miss.items():
+            cloud_123_log.info(f"ICloud123.check_no_reference | filename:{filename} info:{info}")
+        cloud_123_log.info(f"ICloud123.check_no_reference | amount:{amount}")
+        return miss
+
+    @classmethod
+    def delete_files(cls, del_ids):
+        if setting.cloud_123_history_dir_id:
+            cls.move_file_to_custom_history_dir(del_ids, setting.cloud_123_history_dir_id)
+        else:
+            cls.move_file_to_trash(del_ids)
+        cloud_123_log.info(f"ICloud123.delete_files | quantity_deleted:{len(del_ids)}")
+
+    # endregion Check
 
     # region private
     @classmethod

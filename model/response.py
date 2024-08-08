@@ -6,7 +6,7 @@ from log import get_logger
 response_log = get_logger("response_cloud_123")
 
 
-class Cloud123FileList(typing.TypedDict):
+class Cloud123FileInfo(typing.TypedDict):
     fileId: int  # 文件 ID
     filename: str  # 文件名
     type: int  # 0 文件 1 文件夹
@@ -30,7 +30,7 @@ class Cloud123Response:
         self.data = response_json['data']
 
     @property
-    def file_list(self) -> list[Cloud123FileList]:
+    def file_list(self) -> list[Cloud123FileInfo]:
         return self.data["fileList"]
 
     @property
