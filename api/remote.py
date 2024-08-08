@@ -114,6 +114,7 @@ class APICloud123(metaclass=SingletonMeta):
     def upload_complete(cls, preuploadID, header=None) -> Cloud123Response:
         return cls.net.Post(
             f"{cloud_123_api_url}/upload/v1/file/upload_complete",
+            "APICloud123.upload_complete",
             headers=header,
             data=json.dumps({
                 "preuploadID": preuploadID,
@@ -125,6 +126,7 @@ class APICloud123(metaclass=SingletonMeta):
     def upload_async_result(cls, preuploadID, header=None) -> Cloud123Response:
         return cls.net.Post(
             f"{cloud_123_api_url}/upload/v1/file/upload_async_result",
+            "APICloud123.upload_async_result",
             headers=header,
             data=json.dumps({
                 "preuploadID": preuploadID,
