@@ -50,7 +50,10 @@ def get_file_info(file) -> tuple[str, int]:
 
 
 async def get_file_info_by_type(file_path, typ):
-    return get_file_info(await async_get_file_data(os.path.join(file_path), typ))
+    file_data = await async_get_file_data(os.path.join(file_path), typ)
+    if not file_data:
+        return
+    return file_data, *get_file_info(file_data)
 
 
 async def async_get_file_data(file_path, typ=ResourceType.LOCAL):

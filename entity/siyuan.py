@@ -8,8 +8,9 @@ from typing import Optional
 
 import setting
 from define.base import ResourceType
-from tools import string, file
 from log import get_logger
+from model.siyuan import ResourceCache
+from tools import string, file
 from tools.base import SingletonMeta
 from tools.file import get_file_name_and_extension, async_get_file_data
 
@@ -33,19 +34,24 @@ class SiyuanBlockResource:
         self.image_path = ""  # 资源空格转义后路径 http://xxx.xxx.com/siyuan/Nginx_image_20220512101137719.png
         self.filename = ""  # 资源的文件名    Nginx_image_20220512101137719.png
 
+        self.file: bytes = b""
+        self.file_md5: str = ""
+        self.file_size: int = 0
+
     def resource_path(self, remote):
         if remote == ResourceType.SIYUAN:
             return posixpath.join(setting.ASSETS_SUB_DIR, self.filename)
 
     async def parse(self, keep_ori):
-        if not self._GetResource():
+        if not await self._GetResource():
             return False
         if keep_ori:
-            return self._GetOriginFilename()
-        self.filename = await self._GenFileName()
+            self._GetOriginFilename()
+        else:
+            await self._GenFileName()
         return True
 
-    def _GetResource(self):
+    async def _GetResource(self):
         if not (resource := re.search(self.resource_pattern, self.markdown)):
             return False
         self.resource = resource.group()
@@ -54,13 +60,17 @@ class SiyuanBlockResource:
         self.typ = file.get_file_typ(self.image_path, self.markdown)  # 获取文件类型
         if not self.typ:
             return False
+        file_info = await file.get_file_info_by_type(self.url, self.typ)
+        if not file_info:
+            return False
+        self.file, self.file_md5, self.file_size = file_info
         return True
 
     def _GetOriginFilename(self):
         _, file_name, extension = file.get_file_name_and_extension(self.url)
         self.filename = f"{file_name}{extension}"
 
-    async def _GenFileName(self) -> str:
+    async def _GenFileName(self):
         _, ori_file_name, extension = file.get_file_name_and_extension(self.image_path)
         filename, ori_num = string.get_true_file_name(ori_file_name)
         if custom_name := _GetSourceName(self.resource.replace(self.url, "")):
@@ -70,9 +80,9 @@ class SiyuanBlockResource:
         filename = string.replace_special_characters(filename)
         # 加标题为前缀
         filename = string.add_prefix(filename, self.prefix)
-        return await self._GetRecordFileName(filename, ori_num, extension)
+        self.filename = self._GetRecordFileName(filename, ori_num, extension)
 
-    async def _GetRecordFileName(self, filename, ori_num, extension, suffix=""):
+    def _GetRecordFileName(self, filename, ori_num, extension, suffix=""):
         """
         如果文件名已存在, 对比两个文件的md5
             如果md5相同则认为是相同文件 直接复用原始名称
@@ -80,24 +90,23 @@ class SiyuanBlockResource:
         """
         base_filename = f"{filename}{extension}"  # 无后缀的文件名
         origin_filename = f"{filename}{string.get_suffix_by_num(ori_num)}{extension}"  # 可能带后缀的原始路径
-        file_md5, file_size = await file.get_file_info_by_type(self.url, self.typ)
 
         if number := Record().check_name_exist(base_filename):
-            if Record().check_exist_ori_file(file_md5, origin_filename):
+            if Record().check_exist_ori_file(self.file_md5, origin_filename):
                 return origin_filename  # 文件名-文件 对应
             suffix = f"{setting.num_tag}{number}"  # 当前已使用的最大number 是 number - 1 故这里直接使用number
         Record().incr_name_count(base_filename)  # 增加文件名记录
-        entity_log.info(f"SiyuanBlockResource._get_record_file_name | filename:{filename}{suffix}{extension}")
+        entity_log.info(f"SiyuanBlockResource._GetRecordFileName | filename:{filename}{suffix}{extension}")
         new_filename = f"{filename}{suffix}{extension}"
-        Record().update_one_new_file(new_filename, file_md5)  # 记录文件名md5
+        Record().update_one_new_file(new_filename, self.file_md5)  # 记录文件名md5
         return new_filename
 
-    def dump(self):
+    def dump(self) -> ResourceCache:
         return {
             "ori_image_path": self.url,
             "image_path": self.image_path,
-            "name": self.filename,
-            "typ": self.typ
+            "filename": self.filename,
+            "type": self.typ
         }
 
     async def get_file_data(self):
@@ -115,7 +124,7 @@ class Record(metaclass=SingletonMeta):
         if os.path.exists(path := posixpath.join(setting.RECORD_PATH, "siyuan_name.json")):
             with open(path, "r", encoding="utf8") as f:
                 self.name = json.load(f)
-        if os.path.join(posixpath.join(setting.RECORD_PATH, "name_md5_map.json")):
+        if os.path.exists(path := posixpath.join(setting.RECORD_PATH, "name_md5_map.json")):
             with open(path, "r", encoding="utf8") as f:
                 self.name_md5_map = json.load(f)
         self.build_image()
@@ -163,10 +172,11 @@ class Record(metaclass=SingletonMeta):
         self.name = defaultdict(int)
         for resource in resources:
             file_dir, file_name, ext = get_file_name_and_extension(resource.image_path)
-            suffix = file_name.split('-')[-1]
+            suffix = file_name.split(setting.num_tag)[-1]
             if suffix.isdigit() and int(suffix) < 100:
                 file_name = file_name[:-len(suffix) - 1]
-            self.name[file_name.replace("-", "_") + ext] += 1
+            # 只保留不包含 num_tag 的原始文件名
+            self.name[file_name.replace(setting.num_tag, "_") + ext] += 1
         with open(posixpath.join(setting.RECORD_PATH, "siyuan_name.json"), "w", encoding="utf8") as f:
             json.dump(self.name, f, ensure_ascii=False, indent=4)
 

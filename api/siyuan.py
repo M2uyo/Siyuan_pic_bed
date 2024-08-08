@@ -1,9 +1,11 @@
 import json
 
+import requests
+
 from api.base import BaseAPI
+from log import get_logger
 from pools import GetAioSession
 from setting import siyuan_server_point, siyuan_headers
-from log import get_logger
 
 api_log = get_logger("api_siyuan")
 
@@ -82,7 +84,7 @@ class APISiyuan(BaseAPI):
 
     # ---------- Message ----------
     @classmethod
-    async def push_msg(cls, msg, timeout=7000):
+    async def async_push_msg(cls, msg, timeout=7000):
         session = GetAioSession()
         async with session.post(
                 siyuan_server_point + "notification/pushMsg",
@@ -94,7 +96,7 @@ class APISiyuan(BaseAPI):
             return await response.json()
 
     @classmethod
-    async def push_err_msg(cls, msg, timeout=7000):
+    async def async_push_err_msg(cls, msg, timeout=7000):
         session = GetAioSession()
         async with session.post(
                 siyuan_server_point + "notification/pushErrMsg",
@@ -104,3 +106,23 @@ class APISiyuan(BaseAPI):
                 }), headers=siyuan_headers
         ) as response:
             return await response.json()
+
+    @classmethod
+    def push_msg(cls, msg, timeout=7000):
+        return requests.post(
+            siyuan_server_point + "notification/pushMsg",
+            data=json.dumps({
+                "msg": msg,
+                "timeout": timeout
+            }), headers=siyuan_headers
+        ).json()
+
+    @classmethod
+    def push_err_msg(cls, msg, timeout=7000):
+        return requests.post(
+            siyuan_server_point + "notification/pushErrMsg",
+            data=json.dumps({
+                "msg": msg,
+                "timeout": timeout
+            }), headers=siyuan_headers
+        ).json()

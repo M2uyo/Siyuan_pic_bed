@@ -1,20 +1,52 @@
+import asyncio
+import json
 import logging
 import posixpath
 
+import aiofiles
+
 import setting
+from api.siyuan import APISiyuan
 from base.interface import IBase
-from entity.siyuan import SiyuanBlockResource
+from define.base import SQLWhere
+from entity.siyuan import SiyuanBlockResource, Record
 from log import get_logger
+from model.siyuan import ResourceCache
 from tools.file import get_file_info, get_file_info_by_type, async_save_data_to_local_file
 from tools.string import unification_file_path
 
 interface_log = get_logger("interface_local")
 
 
+# noinspection SqlNoDataSourceInspection
 class ISiyuan(IBase):
+    cache_file_name = "siyuan.json"
+
+    @classmethod
+    async def async_quick_get_resource(cls, step=200, keep_ori=False, where=None) -> dict[int, SiyuanBlockResource]:
+        """快速获取带有资源的块数据"""
+        if not where:
+            where = " and ".join([f"markdown like %{setting.cloud_123_remote_path}%", SQLWhere.type_in])
+        total_amount = (await APISiyuan.async_sql_query(f"select count(*) as total from blocks b where {where}"))['data'][0]['total']
+        resource_dict = {}
+
+        async def parse_block_resource(block):
+            block_resource = SiyuanBlockResource(block)
+            if not await block_resource.parse(keep_ori=keep_ori):
+                return
+            resource_dict[block["id"]] = block_resource
+
+        interface_log.info(f"ISiyuan.async_quick_get_resource | total_amount: {total_amount}")
+        for begin in range(0, total_amount, step):
+            sql = f"select id, markdown, (select content from blocks where id=b.root_id) as title from blocks b where {where} limit {step} offset {begin};"
+            response = await APISiyuan.async_sql_query(sql)
+            await asyncio.gather(*(parse_block_resource(block) for block in response['data']))
+        interface_log.info(f"ISiyuan.async_quick_get_resource | len: {len(resource_dict)}")
+        return resource_dict
 
     @classmethod
     def is_same_as_record(cls, filename, record_path):
+        """校验是否已经是siyuan:assets"""
         if posixpath.join(setting.ASSETS_SUB_DIR, filename) == record_path:
             interface_log.debug("ICloud123.already_in | filename")
             return True
@@ -22,17 +54,46 @@ class ISiyuan(IBase):
 
     @classmethod
     async def receive(cls, resource: SiyuanBlockResource, log_level=logging.DEBUG):
-        if not (file_data := resource.get_file_data()):
+        """保存资源到思源assets"""
+        if not (web_file_data := resource.get_file_data()):
             return False  # 请求失败
+        web_file_info = get_file_info(web_file_data)
         # 检查请求是否成功
         save_path, new_url = cls._GetSaveInfo(None, resource.filename)
         # 以二进制方式写入文件
-        if posixpath.exists(save_path) and get_file_info(file_data) == await get_file_info_by_type(save_path, resource.typ):
+        if posixpath.exists(save_path) and web_file_info == await get_file_info_by_type(save_path, resource.typ):
             interface_log.warning(f"SiyuanTools.save_download_resource | info:图片在本地已经存在 img_url:{resource.url} save_path:{save_path}")
         else:
-            await async_save_data_to_local_file(save_path, file_data)
+            await async_save_data_to_local_file(save_path, web_file_data)
         interface_log.log(log_level, f"SiyuanTools.save_download_resource | info:图片已成功保存 img_url:{resource.url} save_path:{save_path}")
         return new_url
+
+    @classmethod
+    async def get_siyuan_resource_record(cls, keep_ori=False) -> (dict[int, SiyuanBlockResource], dict[int, ResourceCache]):
+        sql_where = SQLWhere.sep.join([SQLWhere.type_in])
+        resource_dict = await cls.async_quick_get_resource(keep_ori=keep_ori, where=sql_where)
+        interface_log.info(f"SiyuanAction.do_get_all_siyuan_image | path:{posixpath.join(setting.RECORD_PATH, cls.cache_file_name)}")
+        json_info = {_id: resource.dump() for _id, resource in resource_dict.items()}
+        with open(posixpath.join(setting.RECORD_PATH, cls.cache_file_name), "w", encoding="utf8") as f:
+            json.dump(json_info, f, ensure_ascii=False, indent=4)
+        Record().reset_name(resource_dict.values())
+        return resource_dict, json_info
+
+    # region Check Cache
+    @classmethod
+    async def renew_cache(cls, keep_ori) -> dict[int, ResourceCache]:
+        _, cache = await cls.get_siyuan_resource_record(keep_ori=keep_ori)
+        return cache
+
+    @classmethod
+    async def load_cache(cls, renew) -> dict[int, ResourceCache]:
+        if renew:
+            return await cls.renew_cache(True)
+        async with aiofiles.open(posixpath.join(setting.RECORD_PATH, cls.cache_file_name), "rb") as f:
+            text = (await f.read()).decode('utf-8')  # 假设文件是以utf-8编码
+            return json.loads(text)
+
+    # endregion Check Cache
 
     @classmethod
     def _GetSaveInfo(cls, save_dir, filename):

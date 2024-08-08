@@ -19,6 +19,6 @@ class CommonStr:
 
 class SQLWhere:
     sep = " and "
-    type_in = "b.type in ('p', 'l')"
+    type_in = "b.type in ('p')"
     notebook_id = "b.id='{notebook_id}'"
     root_id = "b.root_id='{root_id}'"
