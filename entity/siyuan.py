@@ -124,7 +124,7 @@ class Record(metaclass=SingletonMeta):
         if os.path.exists(path := posixpath.join(setting.RECORD_PATH, "siyuan_name.json")):
             with open(path, "r", encoding="utf8") as f:
                 self.name = json.load(f)
-        if os.path.join(posixpath.join(setting.RECORD_PATH, "name_md5_map.json")):
+        if os.path.exists(path := posixpath.join(setting.RECORD_PATH, "name_md5_map.json")):
             with open(path, "r", encoding="utf8") as f:
                 self.name_md5_map = json.load(f)
         self.build_image()
