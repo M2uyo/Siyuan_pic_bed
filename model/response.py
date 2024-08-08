@@ -42,7 +42,7 @@ class Cloud123Response:
         return f"code:{self.code} message:{self.message}"
 
     def Check(self, _from="Cloud123Response.Check"):
-        if not self.data:
+        if self.code != 0:
             response_log.error(f"{_from} | {self.info}")
             return False
         return True
