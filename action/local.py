@@ -16,7 +16,7 @@ class CheckAction(metaclass=SingletonMeta):
     def check_miss_in_remote(cls, **kwargs):
         """查看云端缺失文件"""
         cloud_123, siyuan = cls.load_cache()
-        siyuan = [s["name"] for s in siyuan.values()]
+        siyuan = [s["filename"] for s in siyuan.values()]
         remote = [s["filename"] for s in cloud_123]
         miss = []
         for name in siyuan:
@@ -70,7 +70,7 @@ class CheckAction(metaclass=SingletonMeta):
             (del_info): 删除信息, 总的无引用数量
         """
         cloud_123, siyuan = cls.load_cache()
-        siyuan = [s["name"] for s in siyuan.values()]
+        siyuan = [s["filename"] for s in siyuan.values()]
         if cache := await renew_cache(renew_siyuan, renew_cloud_123):
             if "siyuan" in cache:
                 siyuan = cache["siyuan"]

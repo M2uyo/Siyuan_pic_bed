@@ -96,8 +96,8 @@ class SiyuanBlockResource:
         return {
             "ori_image_path": self.url,
             "image_path": self.image_path,
-            "name": self.filename,
-            "typ": self.typ
+            "filename": self.filename,
+            "type": self.typ
         }
 
     async def get_file_data(self):
