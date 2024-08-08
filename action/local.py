@@ -82,7 +82,7 @@ class CheckAction(metaclass=SingletonMeta):
         for file in cloud_123:
             if file["filename"] not in siyuan:
                 _file = miss.setdefault(file["filename"], {})
-                _file.setdefault(file["etag"], []).append(file["fileID"])
+                _file.setdefault(file["etag"], []).append(file["fileId"])
                 amount += 1
         action_log.info(f"无引用资源数量 | amount:{amount}")
         if amount > 0:
