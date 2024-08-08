@@ -41,8 +41,9 @@ class SiyuanBlockResource:
         if not self._GetResource():
             return False
         if keep_ori:
-            return self._GetOriginFilename()
-        self.filename = await self._GenFileName()
+            self._GetOriginFilename()
+        else:
+            await self._GenFileName()
         return True
 
     def _GetResource(self):
@@ -60,7 +61,7 @@ class SiyuanBlockResource:
         _, file_name, extension = file.get_file_name_and_extension(self.url)
         self.filename = f"{file_name}{extension}"
 
-    async def _GenFileName(self) -> str:
+    async def _GenFileName(self):
         _, ori_file_name, extension = file.get_file_name_and_extension(self.image_path)
         filename, ori_num = string.get_true_file_name(ori_file_name)
         if custom_name := _GetSourceName(self.resource.replace(self.url, "")):
@@ -70,7 +71,7 @@ class SiyuanBlockResource:
         filename = string.replace_special_characters(filename)
         # 加标题为前缀
         filename = string.add_prefix(filename, self.prefix)
-        return await self._GetRecordFileName(filename, ori_num, extension)
+        self.filename = await self._GetRecordFileName(filename, ori_num, extension)
 
     async def _GetRecordFileName(self, filename, ori_num, extension, suffix=""):
         """
