@@ -18,10 +18,10 @@ class CommonAsyncRequest(metaclass=SingletonMeta):
         try:
             response = await session.get(url)
         except Exception as e:
-            api_log.info(f"{_from} | url:{url} e:{e}")
+            api_log.error(f"{_from} | url:{url} e:{e}")
             return
         if response.status != 200:
-            api_log.info(f"{_from} | url:{url} code:{response.status} reason:{response.reason}")
+            api_log.error(f"{_from} | url:{url} code:{response.status} reason:{response.reason}")
             return
         return response
 
@@ -31,10 +31,10 @@ class CommonAsyncRequest(metaclass=SingletonMeta):
         try:
             response = await session.put(url, **kwargs, timeout=10)
         except Exception as e:
-            api_log.info(f"{_from} |  url:{url} e:{e}")
+            api_log.error(f"{_from} |  url:{url} e:{e}")
             return
         if response.status != 200:
-            api_log.info(f"{_from} | url:{url} code:{response.status} reason:{response.reason}")
+            api_log.error(f"{_from} | url:{url} code:{response.status} reason:{response.reason}")
             return
         return response
 
@@ -44,10 +44,10 @@ class CommonAsyncRequest(metaclass=SingletonMeta):
         try:
             response = await session.post(url, **kwargs)
         except Exception as e:
-            api_log.info(f"{_from} |  url:{url} e:{e}")
+            api_log.error(f"{_from} |  url:{url} e:{e}")
             return
         if response.status != 200:
-            api_log.info(f"{_from} | url:{url} code:{response.status} reason:{response.reason}")
+            api_log.error(f"{_from} | url:{url} code:{response.status} reason:{response.reason}")
             return
         return response
 
@@ -58,10 +58,10 @@ class CommonRequest(metaclass=SingletonMeta):
         try:
             response = requests.get(url, params=params, **kwargs)
         except Exception as e:
-            api_log.info(f"{_from} | url:{url} e:{e}")
+            api_log.error(f"{_from} | url:{url} e:{e}")
             return
         if response.status_code != 200:
-            api_log.info(f"{_from} | url:{url} code:{response.status_code} reason:{response.reason}")
+            api_log.error(f"{_from} | url:{url} code:{response.status_code} reason:{response.reason}")
             return
         return response
 
@@ -70,10 +70,10 @@ class CommonRequest(metaclass=SingletonMeta):
         try:
             response = requests.post(url, **kwargs)
         except Exception as e:
-            api_log.info(f"{_from} | url:{url} e:{e}")
+            api_log.error(f"{_from} | url:{url} e:{e}")
             return
         if response.status_code != 200:
-            api_log.info(f"{_from} | url:{url} code:{response.status_code} reason:{response.reason}")
+            api_log.error(f"{_from} | url:{url} code:{response.status_code} reason:{response.reason}")
             return
         return response
 
@@ -82,9 +82,9 @@ class CommonRequest(metaclass=SingletonMeta):
         try:
             response = requests.put(url, **kwargs)
         except Exception as e:
-            api_log.info(f"{_from} | url:{url} e:{e}")
+            api_log.error(f"{_from} | url:{url} e:{e}")
             return
         if response.status_code != 200:
-            api_log.info(f"{_from} | url:{url} code:{response.status_code} reason:{response.reason}")
+            api_log.error(f"{_from} | url:{url} code:{response.status_code} reason:{response.reason}")
             return
         return response
