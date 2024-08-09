@@ -4,6 +4,10 @@ import posixpath
 import aiofiles
 
 import setting
+<< << << < HEAD
+== == == =
+from config import SiyuanConfig
+>> >> >> > dev
 from define.base import EndPoint
 from interface import EndPointMap
 from log import get_logger
@@ -19,7 +23,12 @@ class ActionRemote(metaclass=SingletonMeta):
     def renew_cache(cls, remote=EndPoint.CLOUD_123) -> list[Cloud123FileInfo]:
         end_point = EndPointMap[remote]
         files = end_point.get_all_file()
+
+<< << << < HEAD
         with open(posixpath.join(setting.RECORD_PATH, f"{remote.name.lower()}.json"), "w", encoding="utf8") as f:
+== == == =
+with open(posixpath.join(SiyuanConfig().record_path, f"{remote.name.lower()}.json"), "w", encoding=setting.UTF8) as f:
+>> >> >> > dev
             json.dump(files, f, ensure_ascii=False, indent=4)
 
         name_md5_map = {
@@ -27,14 +36,17 @@ class ActionRemote(metaclass=SingletonMeta):
             for file in files
         }
 
-        with open(posixpath.join(setting.RECORD_PATH, "name_md5_map.json"), "w", encoding="utf8") as f:
+with open(posixpath.join(SiyuanConfig().record_path, "name_md5_map.json"), "w", encoding=setting.UTF8) as f:
             json.dump(name_md5_map, f, ensure_ascii=False, indent=4)
+action_log.info(f"ActionRemote.renew_cache | finished | remote:{remote} file_amount:{len(files)} map_amount:{len(name_md5_map)}")
         return files
 
     @classmethod
     async def load_cache(cls, remote=EndPoint.CLOUD_123, renew=False) -> list[Cloud123FileInfo]:
         if renew:
             return cls.renew_cache(remote)
+
+<< << << < HEAD
         async with aiofiles.open(posixpath.join(setting.RECORD_PATH, f"{remote.name.lower()}.json"), "rb") as f:
             return json.loads((await f.read()).decode('utf-8'))  # 假设文件是以utf-8编码
 
@@ -53,6 +65,24 @@ class ActionRemote(metaclass=SingletonMeta):
         if delete:
             cls.del_repeat(repeats, save_amount=save_amount)
         return repeats
+
+== == == =
+async with aiofiles.open(posixpath.join(SiyuanConfig().record_path, f"{remote.name.lower()}.json"), "rb") as f:
+    return json.loads((await f.read()).decode(setting.UTF8))  # 假设文件是以utf-8编码
+
+
+@classmethod
+
+
+async def check_repeat(cls, remote=EndPoint.CLOUD_123, renew_remote=False) -> dict[str, dict[str, list[int]]]:
+    """
+    Returns:
+         {filename: {etag: [file_ids]}}
+    """
+    remote_data = cls.load_cache(remote=remote, renew=renew_remote)
+    return EndPointMap[remote].check_repeat_file(remote_data)
+
+>> >> >> > dev
 
     @classmethod
     def del_repeat(cls, del_info, remote=EndPoint.CLOUD_123, save_amount=1):

@@ -45,3 +45,7 @@ def get_true_file_name(filename):
 
 def get_suffix_by_num(number):
     return f"{num_tag}{number}" if number != 0 else ""
+
+
+def restore_space_escape(url):
+    return url.replace("%20", "_")  # 还原空格转义

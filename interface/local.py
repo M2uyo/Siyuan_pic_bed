@@ -8,6 +8,7 @@ import aiofiles
 import setting
 from api.siyuan import APISiyuan
 from base.interface import IBase
+from config import Cloud123Config, SiyuanConfig
 from define.base import SQLWhere
 from entity.siyuan import SiyuanBlockResource, Record
 from log import get_logger
@@ -26,7 +27,7 @@ class ISiyuan(IBase):
     async def async_quick_get_resource(cls, step=200, keep_ori=False, where=None) -> dict[int, SiyuanBlockResource]:
         """快速获取带有资源的块数据"""
         if not where:
-            where = " and ".join([f"markdown like %{setting.cloud_123_remote_path}%", SQLWhere.type_in])
+            where = " and ".join([f"markdown like %{Cloud123Config().remote_path}%", SQLWhere.type_in])
         total_amount = (await APISiyuan.async_sql_query(f"select count(*) as total from blocks b where {where}"))['data'][0]['total']
         resource_dict = {}
 
@@ -36,19 +37,19 @@ class ISiyuan(IBase):
                 return
             resource_dict[block["id"]] = block_resource
 
-        interface_log.info(f"ISiyuan.async_quick_get_resource | total_amount: {total_amount}")
+        interface_log.info(f"ISiyuan.async_quick_get_resource | total_amount:{total_amount}")
         for begin in range(0, total_amount, step):
             sql = f"select id, markdown, (select content from blocks where id=b.root_id) as title from blocks b where {where} limit {step} offset {begin};"
             response = await APISiyuan.async_sql_query(sql)
             await asyncio.gather(*(parse_block_resource(block) for block in response['data']))
-        interface_log.info(f"ISiyuan.async_quick_get_resource | len: {len(resource_dict)}")
+        interface_log.info(f"ISiyuan.async_quick_get_resource | len:{len(resource_dict)}")
         return resource_dict
 
     @classmethod
     def is_same_as_record(cls, filename, record_path):
         """校验是否已经是siyuan:assets"""
-        if posixpath.join(setting.ASSETS_SUB_DIR, filename) == record_path:
-            interface_log.debug("ICloud123.already_in | filename")
+        if posixpath.join(SiyuanConfig.assets_sub_dir, filename) == record_path:
+            interface_log.debug(f"ICloud123.is_same_as_record | filename:{filename}")
             return True
         return False
 
@@ -62,19 +63,20 @@ class ISiyuan(IBase):
         save_path, new_url = cls._GetSaveInfo(None, resource.filename)
         # 以二进制方式写入文件
         if posixpath.exists(save_path) and web_file_info == await get_file_info_by_type(save_path, resource.typ):
-            interface_log.warning(f"SiyuanTools.save_download_resource | info:图片在本地已经存在 img_url:{resource.url} save_path:{save_path}")
+            interface_log.warning(f"ISiyuan.receive | 图片在本地已经存在 | img_url:{resource.url} save_path:{save_path}")
         else:
             await async_save_data_to_local_file(save_path, web_file_data)
-        interface_log.log(log_level, f"SiyuanTools.save_download_resource | info:图片已成功保存 img_url:{resource.url} save_path:{save_path}")
+        interface_log.log(log_level, f"ISiyuan.receive | 图片已成功保存 | img_url:{resource.url} save_path:{save_path}")
         return new_url
 
     @classmethod
-    async def get_siyuan_resource_record(cls, keep_ori=False) -> (dict[int, SiyuanBlockResource], dict[int, ResourceCache]):
+    async def get_resource_record(cls, keep_ori=False) -> (dict[int, SiyuanBlockResource], dict[int, ResourceCache]):
         sql_where = SQLWhere.sep.join([SQLWhere.type_in])
         resource_dict = await cls.async_quick_get_resource(keep_ori=keep_ori, where=sql_where)
-        interface_log.info(f"SiyuanAction.do_get_all_siyuan_image | path:{posixpath.join(setting.RECORD_PATH, cls.cache_file_name)}")
+        cache_path = posixpath.join(SiyuanConfig().record_path, cls.cache_file_name)
+        interface_log.info(f"ISiyuan.get_resource_record | path:{cache_path}")
         json_info = {_id: resource.dump() for _id, resource in resource_dict.items()}
-        with open(posixpath.join(setting.RECORD_PATH, cls.cache_file_name), "w", encoding="utf8") as f:
+        with open(cache_path, "w", encoding=setting.UTF8) as f:
             json.dump(json_info, f, ensure_ascii=False, indent=4)
         Record().reset_name(resource_dict.values())
         return resource_dict, json_info
@@ -82,15 +84,15 @@ class ISiyuan(IBase):
     # region Check Cache
     @classmethod
     async def renew_cache(cls, keep_ori) -> dict[int, ResourceCache]:
-        _, cache = await cls.get_siyuan_resource_record(keep_ori=keep_ori)
+        _, cache = await cls.get_resource_record(keep_ori=keep_ori)
         return cache
 
     @classmethod
     async def load_cache(cls, renew) -> dict[int, ResourceCache]:
         if renew:
             return await cls.renew_cache(True)
-        async with aiofiles.open(posixpath.join(setting.RECORD_PATH, cls.cache_file_name), "rb") as f:
-            text = (await f.read()).decode('utf-8')  # 假设文件是以utf-8编码
+        async with aiofiles.open(posixpath.join(SiyuanConfig().record_path, cls.cache_file_name), "rb") as f:
+            text = (await f.read()).decode(setting.UTF8)  # 假设文件是以utf-8编码
             return json.loads(text)
 
     # endregion Check Cache
@@ -106,8 +108,8 @@ class ISiyuan(IBase):
         """
         if save_dir is None:
             # 默认为下载操作
-            save_dir = setting.ASSETS_PATH
-            link_dir = setting.ASSETS_SUB_DIR
+            save_dir = SiyuanConfig().assets_path
+            link_dir = SiyuanConfig.assets_sub_dir
         else:  # 默认为 先下载到临时文件夹 然后再上传到指定远程目录
             link_dir = save_dir
         save_path = posixpath.join(save_dir, filename)
