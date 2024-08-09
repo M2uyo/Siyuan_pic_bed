@@ -19,13 +19,6 @@ async def set_config(request: ConfigModel):
     return APIResponse(data={"result": True, "message": define.IMsg.OK})
 
 
-@router.post("/tmp")
-async def tmp_control(request):
-    if not ConfigManager().isConfigCompleted:
-        return APIResponse(data={"result": False, "message": define.ConfigMsg.NOT_INIT})
-    return APIResponse(data={"result": True, "message": define.IMsg.OK})
-
-
 @router.get("/config")
 async def get_config():
     if not ConfigManager().isConfigCompleted:
