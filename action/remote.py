@@ -30,6 +30,7 @@ class ActionRemote(metaclass=SingletonMeta):
 
         with open(posixpath.join(SiyuanConfig().record_path, "name_md5_map.json"), "w", encoding=setting.UTF8) as f:
             json.dump(name_md5_map, f, ensure_ascii=False, indent=4)
+        action_log.info(f"ActionRemote.renew_cache | finished | remote:{remote} file_amount:{len(files)} map_amount:{len(name_md5_map)}")
         return files
 
     @classmethod
