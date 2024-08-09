@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 
 import define
 from config import ConfigManager
-from router import config, siyuan, cloud, check, base
+from router import config, siyuan, base, remote, local
 
 
 # 校验配置是否已经初始化
@@ -17,6 +17,5 @@ root_router = APIRouter()
 root_router.include_router(base.router)
 root_router.include_router(config.router)
 root_router.include_router(siyuan.router, prefix="/siyuan", dependencies=config_depend)
-root_router.include_router(cloud.router, prefix="/cloud", dependencies=config_depend)
-
-root_router.include_router(check.router, prefix="/check", dependencies=config_depend)
+root_router.include_router(remote.router, prefix="/remote", dependencies=config_depend)
+root_router.include_router(local.router, prefix="/local", dependencies=config_depend)

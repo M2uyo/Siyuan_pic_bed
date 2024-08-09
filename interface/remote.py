@@ -71,10 +71,10 @@ class ICloud123(IBase):
 
     # region Check
     @classmethod
-    def check_repeat_file(cls, ori_info: list[Cloud123FileInfo]) -> dict[str, dict[str, list]]:
+    def check_repeat_file(cls, ori_info: list[Cloud123FileInfo]) -> dict[str, dict[str, list[int]]]:
         """
         Returns:
-            {filename: {etag: file_ids}}
+            {filename: {etag: [file_ids]}}
         """
         files = {}
         for file in sorted(ori_info, key=itemgetter("fileId"), reverse=True):

@@ -40,20 +40,13 @@ class ActionRemote(metaclass=SingletonMeta):
             return json.loads((await f.read()).decode(setting.UTF8))  # 假设文件是以utf-8编码
 
     @classmethod
-    async def check_repeat(cls, remote=EndPoint.CLOUD_123, remote_data=None, delete=False, save_amount=1):
+    async def check_repeat(cls, remote=EndPoint.CLOUD_123, renew_remote=False) -> dict[str, dict[str, list[int]]]:
         """
         Returns:
-            del_info:
-                 {filename: {etag: [file_ids]}, amount: 同名文件的数量}
+             {filename: {etag: [file_ids]}}
         """
-        end_point = EndPointMap[remote]
-        if not remote_data:
-            remote_data = cls.renew_cache(remote=remote)
-
-        repeats = end_point.check_repeat_file(remote_data)
-        if delete:
-            cls.del_repeat(repeats, save_amount=save_amount)
-        return repeats
+        remote_data = cls.load_cache(remote=remote, renew=renew_remote)
+        return EndPointMap[remote].check_repeat_file(remote_data)
 
     @classmethod
     def del_repeat(cls, del_info, remote=EndPoint.CLOUD_123, save_amount=1):
