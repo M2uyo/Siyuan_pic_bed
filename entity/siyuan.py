@@ -56,7 +56,7 @@ class SiyuanBlockResource:
             return False
         self.resource = resource.group()
         self.url = re.search(self.resource_link_pattern, self.resource).group(1)  # 资源链接
-        self.image_path = self.url.replace("%20", "_")  # 将空格的转义还原
+        self.image_path = string.restore_space_escape(self.url)
         self.typ = file.get_file_typ(self.image_path, self.markdown)  # 获取文件类型
         if not self.typ:
             return False
