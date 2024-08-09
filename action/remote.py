@@ -19,7 +19,7 @@ class ActionRemote(metaclass=SingletonMeta):
     def renew_cache(cls, remote=EndPoint.CLOUD_123) -> list[Cloud123FileInfo]:
         end_point = EndPointMap[remote]
         files = end_point.get_all_file()
-        with open(posixpath.join(setting.RECORD_PATH, f"{remote.name.lower()}.json"), "w", encoding="utf8") as f:
+        with open(posixpath.join(setting.RECORD_PATH, f"{remote.name.lower()}.json"), "w", encoding=setting.UTF8) as f:
             json.dump(files, f, ensure_ascii=False, indent=4)
 
         name_md5_map = {
@@ -27,7 +27,7 @@ class ActionRemote(metaclass=SingletonMeta):
             for file in files
         }
 
-        with open(posixpath.join(setting.RECORD_PATH, "name_md5_map.json"), "w", encoding="utf8") as f:
+        with open(posixpath.join(setting.RECORD_PATH, "name_md5_map.json"), "w", encoding=setting.UTF8) as f:
             json.dump(name_md5_map, f, ensure_ascii=False, indent=4)
         return files
 
@@ -36,7 +36,7 @@ class ActionRemote(metaclass=SingletonMeta):
         if renew:
             return cls.renew_cache(remote)
         async with aiofiles.open(posixpath.join(setting.RECORD_PATH, f"{remote.name.lower()}.json"), "rb") as f:
-            return json.loads((await f.read()).decode('utf-8'))  # 假设文件是以utf-8编码
+            return json.loads((await f.read()).decode(setting.UTF8))  # 假设文件是以utf-8编码
 
     @classmethod
     async def check_repeat(cls, remote=EndPoint.CLOUD_123, remote_data=None, delete=False, save_amount=1):

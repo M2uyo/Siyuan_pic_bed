@@ -121,10 +121,10 @@ class Record(metaclass=SingletonMeta):
     def load_data(self):
         entity_log.info("Record.load_data | start")
         if os.path.exists(path := posixpath.join(setting.RECORD_PATH, "siyuan_name.json")):
-            with open(path, "r", encoding="utf8") as f:
+            with open(path, "r", encoding=setting.UTF8) as f:
                 self.name = json.load(f)
         if os.path.exists(path := posixpath.join(setting.RECORD_PATH, "name_md5_map.json")):
-            with open(path, "r", encoding="utf8") as f:
+            with open(path, "r", encoding=setting.UTF8) as f:
                 self.name_md5_map = json.load(f)
         self.build_image()
         entity_log.info("Record.load_data | finished")
@@ -135,9 +135,9 @@ class Record(metaclass=SingletonMeta):
 
     def save(self):
         entity_log.info("Record.save | start")
-        with open(posixpath.join(setting.RECORD_PATH, "siyuan_name.json"), "w", encoding="utf8") as f:
+        with open(posixpath.join(setting.RECORD_PATH, "siyuan_name.json"), "w", encoding=setting.UTF8) as f:
             json.dump(self.name, f, ensure_ascii=False, indent=4)
-        with open(posixpath.join(setting.RECORD_PATH, "name_md5_map.json"), "w", encoding="utf8") as f:
+        with open(posixpath.join(setting.RECORD_PATH, "name_md5_map.json"), "w", encoding=setting.UTF8) as f:
             json.dump(self.name_md5_map, f, ensure_ascii=False, indent=4)
         entity_log.info("Record.save | finished")
 
@@ -177,7 +177,7 @@ class Record(metaclass=SingletonMeta):
                 file_name = file_name[:-len(suffix) - 1]
             # 只保留不包含 num_tag 的原始文件名
             self.name[file_name.replace(setting.num_tag, "_") + ext] += 1
-        with open(posixpath.join(setting.RECORD_PATH, "siyuan_name.json"), "w", encoding="utf8") as f:
+        with open(posixpath.join(setting.RECORD_PATH, "siyuan_name.json"), "w", encoding=setting.UTF8) as f:
             json.dump(self.name, f, ensure_ascii=False, indent=4)
 
 

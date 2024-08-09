@@ -23,7 +23,7 @@ def get_logger(log_name):
     console_handler.setLevel(logging.INFO)
 
     # 创建一个文件处理器
-    file_handler = logging.FileHandler(f'{setting.LOG_PATH}/{log_name}.log', encoding="utf-8")
+    file_handler = logging.FileHandler(f'{setting.LOG_PATH}/{log_name}.log', encoding=setting.UTF8)
     file_handler.setLevel(logging.DEBUG)
     file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     file_handler.setFormatter(file_formatter)
