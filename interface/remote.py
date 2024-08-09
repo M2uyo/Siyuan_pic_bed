@@ -144,6 +144,6 @@ class ICloud123(IBase):
                     break
                 await asyncio.sleep(1)
             else:
-                cloud_123_log.error(f"ICloud123._CheckReplace | 异步校验上传失败 | filename:{filename} times:{i + 1}")
+                cloud_123_log.error(f"ICloud123._CheckReplace | 异步校验上传失败 | filename:{filename} times:{check_times}")
 
     # endregion private
