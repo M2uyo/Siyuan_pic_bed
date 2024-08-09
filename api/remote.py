@@ -2,11 +2,10 @@ import datetime
 import json
 import posixpath
 
-import setting
 from api.base import CommonAsyncRequest, CommonRequest
+from config import Cloud123Config, SiyuanConfig
 from log import get_logger
 from model.response import Cloud123Response, APIErrorMessage
-from setting import cloud_123_api_url
 from tools.base import SingletonMeta
 from tools.file import get_file_info
 
@@ -40,6 +39,7 @@ def auto_header_response(func):
 
 class APICloud123(metaclass=SingletonMeta):
     net = CommonRequest()
+    _cfg = Cloud123Config()
 
     @classmethod
     def get_token(cls):
@@ -50,9 +50,9 @@ class APICloud123(metaclass=SingletonMeta):
         if token := _check_token():
             return token
         response = APICloud123.net.Post(
-            f"{cloud_123_api_url}/api/v1/access_token",
+            f"{cls._cfg.api_url}/api/v1/access_token",
             "APICloud123.get_token",
-            data=json.dumps(setting.cloud_123_SK), headers=setting.cloud_123_default_header
+            data=cls._cfg.key_dump(), headers=cls._cfg.default_header
         ).json()
         return _SaveToken(response)
 
@@ -60,12 +60,12 @@ class APICloud123(metaclass=SingletonMeta):
     @auto_header_response
     def upload_file(cls, file, filename, parent: int = None, header=None):
         if not parent:
-            parent = setting.cloud_123_dir_id
+            parent = cls._cfg.dir_id
         etag, file_size = get_file_info(file)
 
         def CallBack(response: Cloud123Response):
             if response.code == 1 and response.message == APIErrorMessage.文件重复:
-                remote_file = cls.net.Get(posixpath.join(setting.cloud_123_remote_path + filename), "APICloud123.upload_file")
+                remote_file = cls.net.Get(posixpath.join(Cloud123Config().remote_path + filename), "APICloud123.upload_file")
                 if remote_file and get_file_info(remote_file.content) == (etag, file_size):
                     response.reuse = True
                     return True
@@ -75,7 +75,7 @@ class APICloud123(metaclass=SingletonMeta):
             return response.Check()
 
         return CallBack, cls.net.Post(
-            f"{cloud_123_api_url}/upload/v1/file/create",
+            f"{cls._cfg.api_url}/upload/v1/file/create",
             "APISyncCloud123.upload_file",
             data=json.dumps({
                 "parentFileID": parent,
@@ -89,7 +89,7 @@ class APICloud123(metaclass=SingletonMeta):
     @auto_header_response
     def get_slice_upload_url(cls, preuploadID, slice_no, header=None) -> Cloud123Response:
         return cls.net.Post(
-            f"{cloud_123_api_url}/upload/v1/file/get_upload_url",
+            f"{cls._cfg.api_url}/upload/v1/file/get_upload_url",
             "APISyncCloud123.get_slice_upload_url",
             data=json.dumps({
                 "preuploadID": preuploadID,
@@ -101,7 +101,7 @@ class APICloud123(metaclass=SingletonMeta):
     @auto_header_response
     def check_upload_integrity(cls, preuploadID, header=None) -> Cloud123Response:
         return cls.net.Post(
-            f"{cloud_123_api_url}/upload/v1/file/list_upload_parts",
+            f"{cls._cfg.api_url}/upload/v1/file/list_upload_parts",
             "APISyncCloud123.check_upload_integrity",
             headers=header,
             data=json.dumps({
@@ -113,7 +113,7 @@ class APICloud123(metaclass=SingletonMeta):
     @auto_header_response
     def upload_complete(cls, preuploadID, header=None) -> Cloud123Response:
         return cls.net.Post(
-            f"{cloud_123_api_url}/upload/v1/file/upload_complete",
+            f"{cls._cfg.api_url}/upload/v1/file/upload_complete",
             "APICloud123.upload_complete",
             headers=header,
             data=json.dumps({
@@ -125,7 +125,7 @@ class APICloud123(metaclass=SingletonMeta):
     @auto_header_response
     def upload_async_result(cls, preuploadID, header=None) -> Cloud123Response:
         return cls.net.Post(
-            f"{cloud_123_api_url}/upload/v1/file/upload_async_result",
+            f"{cls._cfg.api_url}/upload/v1/file/upload_async_result",
             "APICloud123.upload_async_result",
             headers=header,
             data=json.dumps({
@@ -137,7 +137,7 @@ class APICloud123(metaclass=SingletonMeta):
     @auto_header_response
     def get_file_list(cls, limit=100, last_file_id=None, parent=None, header=None) -> Cloud123Response:
         if not parent:  # 不能写在参数列表中给定默认值, 如果在参数列表中给定 则无法读取最新配置
-            parent = setting.cloud_123_dir_id
+            parent = cls._cfg.dir_id
         params = {
             "parentFileId": parent,
             "Limit": limit,
@@ -145,7 +145,7 @@ class APICloud123(metaclass=SingletonMeta):
         if last_file_id:
             params["LastFileId"] = last_file_id
         return cls.net.Get(
-            f"{cloud_123_api_url}/api/v2/file/list",
+            f"{cls._cfg.api_url}/api/v2/file/list",
             "APICloud123.get_file_list",
             params=params,
             headers=header,
@@ -162,7 +162,7 @@ class APICloud123(metaclass=SingletonMeta):
             return response.Check()
 
         return Callback, cls.net.Post(
-            f"{cloud_123_api_url}/api/v1/file/trash",
+            f"{cls._cfg.api_url}/api/v1/file/trash",
             "APICloud123.move_file_to_trash",
             headers=header,
             data=json.dumps({"FileIDs": file_ids})
@@ -179,7 +179,7 @@ class APICloud123(metaclass=SingletonMeta):
             return response.Check()
 
         return Callback, cls.net.Post(
-            f"{cloud_123_api_url}/api/v1/file/move",
+            f"{cls._cfg.api_url}/api/v1/file/move",
             "APICloud123.move_file_to_dest_dir",
             headers=header,
             data=json.dumps({"FileIDs": file_ids, "toParentFileID": dest_dir})
@@ -193,10 +193,10 @@ class APISyncCloud123(APICloud123):
     @auto_header_response
     async def upload_file(cls, file, filename, parent: int = None, header=None):
         if not parent:
-            parent = setting.cloud_123_dir_id
+            parent = cls._cfg.dir_id
         etag, file_size = get_file_info(file)
         return await cls.net.Post(
-            f"{cloud_123_api_url}/upload/v1/file/create",
+            f"{cls._cfg.api_url}/upload/v1/file/create",
             "APISyncCloud123.upload_file",
             data=json.dumps({
                 "parentFileID": parent,
@@ -210,7 +210,7 @@ class APISyncCloud123(APICloud123):
     @auto_header_response
     async def get_slice_upload_url(cls, preuploadID, slice_no, header=None):
         return await cls.net.Post(
-            f"{cloud_123_api_url}/upload/v1/file/get_upload_url",
+            f"{cls._cfg.api_url}/upload/v1/file/get_upload_url",
             "APISyncCloud123.get_slice_upload_url",
             data=json.dumps({
                 "preuploadID": preuploadID,
@@ -222,7 +222,7 @@ class APISyncCloud123(APICloud123):
     @auto_header_response
     async def check_upload_integrity(cls, preuploadID, header=None):
         return await cls.net.Post(
-            f"{cloud_123_api_url}/upload/v1/file/list_upload_parts",
+            f"{cls._cfg.api_url}/upload/v1/file/list_upload_parts",
             "APISyncCloud123.check_upload_integrity",
             headers=header,
             data=json.dumps({
@@ -234,7 +234,7 @@ class APISyncCloud123(APICloud123):
     @auto_header_response
     async def upload_complete(cls, preuploadID, header=None):
         return await cls.net.Post(
-            f"{cloud_123_api_url}/upload/v1/file/upload_complete",
+            f"{cls._cfg.api_url}/upload/v1/file/upload_complete",
             headers=header,
             data=json.dumps({
                 "preuploadID": preuploadID,
@@ -245,7 +245,7 @@ class APISyncCloud123(APICloud123):
     @auto_header_response
     async def upload_async_result(cls, preuploadID, header=None):
         return await cls.net.Post(
-            f"{cloud_123_api_url}/upload/v1/file/upload_async_result",
+            f"{cls._cfg.api_url}/upload/v1/file/upload_async_result",
             headers=header,
             data=json.dumps({
                 "preuploadID": preuploadID,
@@ -254,7 +254,7 @@ class APISyncCloud123(APICloud123):
 
 
 def _check_token():
-    token_save_path = f"{setting.CONFIG_PATH}/token.json"
+    token_save_path = f"{SiyuanConfig().config_path}/token.json"
     if not posixpath.exists(token_save_path):
         return
     with open(token_save_path, 'r') as fp:
@@ -266,7 +266,7 @@ def _check_token():
 
 
 def _SaveToken(response):
-    with open(f"{setting.CONFIG_PATH}/token.json", 'w') as fp:
+    with open(f"{SiyuanConfig().config_path}/token.json", 'w') as fp:
         json.dump(response, fp, indent=4, ensure_ascii=False)
     token = response["data"]["accessToken"]
     expiredAt = response["data"]["expiredAt"]

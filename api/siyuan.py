@@ -3,9 +3,9 @@ import json
 import requests
 
 from api.base import BaseAPI
-from pools import GetAioSession
-from setting import siyuan_server_point, siyuan_headers
+from config import SiyuanConfig
 from log import get_logger
+from pools import GetAioSession
 
 api_log = get_logger("api_siyuan")
 
@@ -17,10 +17,10 @@ class APISiyuan(BaseAPI):
         api_log.debug(f"APISiyuan.async_sql_query | stmt:{stmt}")
         session = GetAioSession()
         async with session.post(
-                siyuan_server_point + "query/sql",
+                SiyuanConfig.server_point + "query/sql",
                 data=json.dumps({
                     "stmt": stmt
-                }), headers=siyuan_headers
+                }), headers=SiyuanConfig().header
         ) as response:
             return await response.json()
 
@@ -28,10 +28,10 @@ class APISiyuan(BaseAPI):
     async def get_kramdown(cls, _id):
         session = GetAioSession()
         async with session.post(
-                siyuan_server_point + "block/getBlockKramdown",
+                SiyuanConfig.server_point + "block/getBlockKramdown",
                 data=json.dumps({
                     "id": _id
-                }), headers=siyuan_headers
+                }), headers=SiyuanConfig().header
         ) as response:
             return await response.json()
 
@@ -39,10 +39,10 @@ class APISiyuan(BaseAPI):
     async def get_sub_block(cls, _id):
         session = GetAioSession()
         async with session.post(
-                siyuan_server_point + "block/getChildBlocks",
+                SiyuanConfig.server_point + "block/getChildBlocks",
                 data=json.dumps({
                     "id": _id
-                }), headers=siyuan_headers
+                }), headers=SiyuanConfig().header
         ) as response:
             return await response.json()
 
@@ -50,10 +50,10 @@ class APISiyuan(BaseAPI):
     async def get_block_attr(cls, _id):
         session = GetAioSession()
         async with session.post(
-                siyuan_server_point + "attr/getBlockAttrs",
+                SiyuanConfig.server_point + "attr/getBlockAttrs",
                 data=json.dumps({
                     "id": _id
-                }), headers=siyuan_headers
+                }), headers=SiyuanConfig().header
         ) as response:
             return await response.json()
 
@@ -61,11 +61,11 @@ class APISiyuan(BaseAPI):
     async def set_block_attr(cls, _id, _attrs):
         session = GetAioSession()
         async with session.post(
-                siyuan_server_point + "attr/setBlockAttrs",
+                SiyuanConfig.server_point + "attr/setBlockAttrs",
                 data=json.dumps({
                     "id": _id,
                     "attrs": _attrs
-                }), headers=siyuan_headers
+                }), headers=SiyuanConfig().header
         ) as response:
             return await response.json()
 
@@ -73,12 +73,12 @@ class APISiyuan(BaseAPI):
     async def update_block(cls, _id, _data, data_type="markdown"):
         session = GetAioSession()
         async with session.post(
-                siyuan_server_point + "block/updateBlock",
+                SiyuanConfig.server_point + "block/updateBlock",
                 data=json.dumps({
                     "dataType": data_type,
                     "id": _id,
                     "data": _data
-                }), headers=siyuan_headers
+                }), headers=SiyuanConfig().header
         ) as response:
             return await response.json()
 
@@ -87,11 +87,11 @@ class APISiyuan(BaseAPI):
     async def async_push_msg(cls, msg, timeout=7000):
         session = GetAioSession()
         async with session.post(
-                siyuan_server_point + "notification/pushMsg",
+                SiyuanConfig.server_point + "notification/pushMsg",
                 data=json.dumps({
                     "msg": msg,
                     "timeout": timeout
-                }), headers=siyuan_headers
+                }), headers=SiyuanConfig().header
         ) as response:
             return await response.json()
 
@@ -99,30 +99,30 @@ class APISiyuan(BaseAPI):
     async def async_push_err_msg(cls, msg, timeout=7000):
         session = GetAioSession()
         async with session.post(
-                siyuan_server_point + "notification/pushErrMsg",
+                SiyuanConfig.server_point + "notification/pushErrMsg",
                 data=json.dumps({
                     "msg": msg,
                     "timeout": timeout
-                }), headers=siyuan_headers
+                }), headers=SiyuanConfig().header
         ) as response:
             return await response.json()
 
     @classmethod
     def push_msg(cls, msg, timeout=7000):
         return requests.post(
-            siyuan_server_point + "notification/pushMsg",
+            SiyuanConfig.server_point + "notification/pushMsg",
             data=json.dumps({
                 "msg": msg,
                 "timeout": timeout
-            }), headers=siyuan_headers
+            }), headers=SiyuanConfig().header
         ).json()
 
     @classmethod
     def push_err_msg(cls, msg, timeout=7000):
         return requests.post(
-            siyuan_server_point + "notification/pushErrMsg",
+            SiyuanConfig.server_point + "notification/pushErrMsg",
             data=json.dumps({
                 "msg": msg,
                 "timeout": timeout
-            }), headers=siyuan_headers
+            }), headers=SiyuanConfig().header
         ).json()

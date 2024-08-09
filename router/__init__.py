@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, Depends
 
 import define
-import setting
+from config import ConfigManager
 from router import config, siyuan, cloud, check, base
 
 
 # 校验配置是否已经初始化
 def validate_config():
-    if not setting.self_config:
+    if not ConfigManager().isConfigCompleted:
         raise HTTPException(status_code=400, detail=define.ConfigMsg.NOT_INIT)
 
 

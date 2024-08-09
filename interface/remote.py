@@ -4,10 +4,10 @@ import posixpath
 import time
 from operator import itemgetter
 
-import setting
 from api.base import CommonRequest
 from api.remote import APICloud123
 from base.interface import IBase
+from config import Cloud123Config
 from entity.siyuan import SiyuanBlockResource
 from log import get_logger
 from model.response import Cloud123Response, Cloud123FileInfo
@@ -40,7 +40,7 @@ class ICloud123(IBase):
         response: Cloud123Response = APICloud123.upload_file(file_data, resource.filename)
         if not response:
             return
-        new_path = string.unification_file_path(posixpath.join(setting.cloud_123_remote_path, resource.filename))
+        new_path = string.unification_file_path(posixpath.join(Cloud123Config().remote_path, resource.filename))
         if response.is_reuse():
             cloud_123_log.log(log_level, f"ICloud123.upload | 上传成功 | filename:{resource.filename} data:{response.data}")
             return new_path
@@ -64,7 +64,7 @@ class ICloud123(IBase):
 
     @classmethod
     def is_same_as_record(cls, filename, record_path):
-        if posixpath.join(setting.cloud_123_remote_path, filename) == record_path:
+        if posixpath.join(Cloud123Config().remote_path, filename) == record_path:
             cloud_123_log.debug(f"ICloud123.is_same_as_record | filename:{filename}")
             return True
         return False
@@ -104,8 +104,8 @@ class ICloud123(IBase):
 
     @classmethod
     def delete_files(cls, del_ids):
-        if setting.cloud_123_history_dir_id:
-            cls.move_file_to_custom_history_dir(del_ids, setting.cloud_123_history_dir_id)
+        if Cloud123Config().history_dir_id:
+            cls.move_file_to_custom_history_dir(del_ids, Cloud123Config().history_dir_id)
         else:
             cls.move_file_to_trash(del_ids)
         cloud_123_log.info(f"ICloud123.delete_files | quantity_deleted:{len(del_ids)}")

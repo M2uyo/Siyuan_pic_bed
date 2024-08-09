@@ -20,10 +20,14 @@ class Cloud123ConfigModel(BaseModel):
     remote_path: str = ""
 
 
+class SiyuanConfigModel(BaseModel):
+    token: str = ""
+    data_dir: str = ""
+
+
 class ConfigModel(BaseModel):
     cloud_123: Cloud123ConfigModel
-    token: str
-    siyuan_data_dir: str = ""
+    siyuan: SiyuanConfigModel
 
 
 class EmptyModel(BaseModel):
