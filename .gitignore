@@ -4,3 +4,4 @@ dist
 build
 *.spec
 /todo.md
+/github/tools/github_token.py
