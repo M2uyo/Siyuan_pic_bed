@@ -77,9 +77,9 @@ class ICloud123(IBase):
             {filename: {etag: file_ids}}
         """
         files = {}
-        for file in sorted(ori_info, key=itemgetter("fileID"), reverse=True):
+        for file in sorted(ori_info, key=itemgetter("fileId"), reverse=True):
             _file = files.setdefault(file["filename"], {})
-            _file.setdefault(file["etag"], []).append(file["fileID"])
+            _file.setdefault(file["etag"], []).append(file["fileId"])
             _file["amount"] = 1 + _file.get("amount", 0)
         repeats = {}
         for filename, file_info in files.items():

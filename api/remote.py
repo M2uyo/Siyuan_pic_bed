@@ -78,7 +78,7 @@ class APICloud123(metaclass=SingletonMeta):
             f"{cls._cfg.api_url}/upload/v1/file/create",
             "APISyncCloud123.upload_file",
             data=json.dumps({
-                "parentFileID": parent,
+                "parentFileId": parent,
                 "Etag": etag,
                 "size": file_size,
                 "filename": filename,
@@ -165,7 +165,7 @@ class APICloud123(metaclass=SingletonMeta):
             f"{cls._cfg.api_url}/api/v1/file/trash",
             "APICloud123.move_file_to_trash",
             headers=header,
-            data=json.dumps({"FileIDs": file_ids})
+            data=json.dumps({"FileIds": file_ids})
         )
 
     @classmethod
@@ -182,7 +182,7 @@ class APICloud123(metaclass=SingletonMeta):
             f"{cls._cfg.api_url}/api/v1/file/move",
             "APICloud123.move_file_to_dest_dir",
             headers=header,
-            data=json.dumps({"FileIDs": file_ids, "toParentFileID": dest_dir})
+            data=json.dumps({"FileIds": file_ids, "toParentFileId": dest_dir})
         )
 
 
@@ -199,7 +199,7 @@ class APISyncCloud123(APICloud123):
             f"{cls._cfg.api_url}/upload/v1/file/create",
             "APISyncCloud123.upload_file",
             data=json.dumps({
-                "parentFileID": parent,
+                "parentFileId": parent,
                 "Etag": etag,
                 "size": file_size,
                 "filename": filename,
