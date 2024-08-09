@@ -14,8 +14,8 @@ router = APIRouter()
 async def set_config(request: ConfigModel):
     try:
         ConfigManager().load_config(request)
-    except Exception:
-        return APIResponse(data={"result": False, "message": define.ConfigMsg.ILLEGAL_SOURCE})
+    except Exception as e:
+        return APIResponse(data={"result": False, "message": define.ConfigMsg.ILLEGAL_SOURCE, "error": str(e})
     return APIResponse(data={"result": True, "message": define.IMsg.OK})
 
 
