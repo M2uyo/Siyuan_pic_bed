@@ -5,8 +5,8 @@ from typing import Optional
 
 import aiofiles
 
-import setting
 from api.base import CommonAsyncRequest
+from config import SiyuanConfig
 from define.base import ResourceType, CommonStr
 from log import get_logger
 
@@ -31,12 +31,12 @@ def get_file_name_and_extension(file_path) -> tuple[str, str, str]:
 def get_file_typ(image_path, text=None) -> Optional[ResourceType]:
     if image_path.startswith(CommonStr.HTTP):
         return ResourceType.WEB
-    elif image_path.startswith(setting.ASSETS_SUB_DIR):
+    elif image_path.startswith(SiyuanConfig.assets_sub_dir):
         return ResourceType.SIYUAN
     elif os.path.exists(image_path):
         return ResourceType.LOCAL
     else:
-        file_tools_log.error(f"不支持的图片类型 | path:{image_path} {text}")
+        file_tools_log.error(f"get_file_typ | 不支持的图片类型 | path:{image_path} {text}")
 
 
 def get_file_info(file) -> tuple[str, int]:
@@ -64,7 +64,7 @@ async def async_get_file_data(file_path, typ=ResourceType.LOCAL):
         async with aiofiles.open(file_path, "rb") as f:
             return await f.read()
     elif typ == ResourceType.SIYUAN:
-        async with aiofiles.open(os.path.join(setting.SIYUAN_DATA_PATH, file_path), "rb") as f:
+        async with aiofiles.open(os.path.join(SiyuanConfig().data_dir, file_path), "rb") as f:
             return await f.read()
 
 

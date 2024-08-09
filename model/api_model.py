@@ -2,6 +2,8 @@ from collections import UserDict
 
 from pydantic import BaseModel
 
+from define.base import EndPoint
+
 
 class NoteBookModel(BaseModel):
     method: str = ""
@@ -17,21 +19,25 @@ class Cloud123ConfigModel(BaseModel):
     SK: str
     dir_id: int
     history_dir_id: int = 0
-    remote_path: str = ""
+    remote_path: str
+
+
+class SiyuanConfigModel(BaseModel):
+    token: str
+    data_dir: str
 
 
 class ConfigModel(BaseModel):
     cloud_123: Cloud123ConfigModel
-    token: str
-    siyuan_data_dir: str = ""
+    siyuan: SiyuanConfigModel
 
 
 class EmptyModel(BaseModel):
     pass
 
 
-class CheckModel(BaseModel):
-    remote: str = ""
+class RemoteModel(BaseModel):
+    remote: EndPoint
     renew_siyuan: bool = False
     renew_remote: bool = False
     show: bool = False

@@ -4,10 +4,10 @@ import posixpath
 import time
 from operator import itemgetter
 
-import setting
 from api.base import CommonRequest
 from api.remote import APICloud123
 from base.interface import IBase
+from config import Cloud123Config
 from entity.siyuan import SiyuanBlockResource
 from log import get_logger
 from model.response import Cloud123Response, Cloud123FileInfo
@@ -40,9 +40,9 @@ class ICloud123(IBase):
         response: Cloud123Response = APICloud123.upload_file(file_data, resource.filename)
         if not response:
             return
-        new_path = string.unification_file_path(posixpath.join(setting.cloud_123_remote_path, resource.filename))
+        new_path = string.unification_file_path(posixpath.join(Cloud123Config().remote_path, resource.filename))
         if response.is_reuse():
-            cloud_123_log.log(log_level, f"ICloud123.upload | 上传成功 filename:{resource.filename} data:{response.data}")
+            cloud_123_log.log(log_level, f"ICloud123.upload | 上传成功 | filename:{resource.filename} data:{response.data}")
             return new_path
         file_split_list, chunk_num = split_file_context(file_data, response.data["sliceSize"])
         is_async, completed = await cls._MultiUploadFilePart(response.data["preuploadID"], file_split_list, chunk_num)
@@ -64,22 +64,22 @@ class ICloud123(IBase):
 
     @classmethod
     def is_same_as_record(cls, filename, record_path):
-        if posixpath.join(setting.cloud_123_remote_path, filename) == record_path:
-            cloud_123_log.debug("ICloud123.already_in | filename")
+        if posixpath.join(Cloud123Config().remote_path, filename) == record_path:
+            cloud_123_log.debug(f"ICloud123.is_same_as_record | filename:{filename}")
             return True
         return False
 
     # region Check
     @classmethod
-    def check_repeat_file(cls, ori_info: list[Cloud123FileInfo]) -> dict[str, dict[str, list]]:
+    def check_repeat_file(cls, ori_info: list[Cloud123FileInfo]) -> dict[str, dict[str, list[int]]]:
         """
         Returns:
-            {filename: {etag: file_ids}}
+            {filename: {etag: [file_ids]}}
         """
         files = {}
-        for file in sorted(ori_info, key=itemgetter("fileID"), reverse=True):
+        for file in sorted(ori_info, key=itemgetter("fileId"), reverse=True):
             _file = files.setdefault(file["filename"], {})
-            _file.setdefault(file["etag"], []).append(file["fileID"])
+            _file.setdefault(file["etag"], []).append(file["fileId"])
             _file["amount"] = 1 + _file.get("amount", 0)
         repeats = {}
         for filename, file_info in files.items():
@@ -104,8 +104,8 @@ class ICloud123(IBase):
 
     @classmethod
     def delete_files(cls, del_ids):
-        if setting.cloud_123_history_dir_id:
-            cls.move_file_to_custom_history_dir(del_ids, setting.cloud_123_history_dir_id)
+        if Cloud123Config().history_dir_id:
+            cls.move_file_to_custom_history_dir(del_ids, Cloud123Config().history_dir_id)
         else:
             cls.move_file_to_trash(del_ids)
         cloud_123_log.info(f"ICloud123.delete_files | quantity_deleted:{len(del_ids)}")
@@ -126,9 +126,9 @@ class ICloud123(IBase):
             file_part = file_split_list[index]
             md5, file_size = get_file_info(file_part)
             if md5 != part["etag"] or file_size != part["size"]:
-                cloud_123_log.error(f"校验失败 | md5:{md5} file_size:{file_size} etag:{part['etag']} size:{part['size']} part:{part['partNumber']}")
+                cloud_123_log.error(f"ICloud123._MultiUploadFilePart | 校验失败 | md5:{md5} file_size:{file_size} etag:{part['etag']} size:{part['size']} part:{part['partNumber']}")
                 raise Exception()
-            cloud_123_log.info(f"校验成功 | md5:{md5} file_size:{file_size} etag:{part['etag']} size:{part['size']} part:{part['partNumber']}")
+            cloud_123_log.info(f"ICloud123._MultiUploadFilePart | 校验成功 | md5:{md5} file_size:{file_size} etag:{part['etag']} size:{part['size']} part:{part['partNumber']}")
         response_data = APICloud123.upload_complete(preuploadID)
         assert response_data is not None
         return response_data.data['async'], response_data.data['completed']
@@ -140,10 +140,10 @@ class ICloud123(IBase):
             for i in range(check_times):
                 response = APICloud123.upload_async_result(preuploadID).data
                 if response and response["completed"]:
-                    cloud_123_log.info(f"异步校验上传成功 | filename:{filename} times:{i + 1}")
+                    cloud_123_log.info(f"ICloud123._CheckReplace | 异步校验上传成功 | filename:{filename} times:{i + 1}")
                     break
                 await asyncio.sleep(1)
             else:
-                cloud_123_log.error("异步校验上传失败 | filename:{change['res']['filename']} times:{times}")
+                cloud_123_log.error(f"ICloud123._CheckReplace | 异步校验上传失败 | filename:{filename} times:{check_times}")
 
     # endregion private

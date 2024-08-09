@@ -30,5 +30,5 @@ async def siyuan_notebooks(request: NoteBookModel):
         Record().save()
         return APIResponse(data={"result": True, "message": define.IMsg.OK})
     elif request.method == define.NotebookMethod.加载文件信息:
-        await ISiyuan.get_siyuan_resource_record(keep_ori=True)
+        await ISiyuan.get_resource_record(keep_ori=True)
         return APIResponse(data={"result": True, "message": define.IMsg.OK})

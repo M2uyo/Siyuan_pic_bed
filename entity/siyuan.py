@@ -7,6 +7,7 @@ from collections import defaultdict
 from typing import Optional
 
 import setting
+from config import SiyuanConfig
 from define.base import ResourceType
 from log import get_logger
 from model.siyuan import ResourceCache
@@ -40,7 +41,7 @@ class SiyuanBlockResource:
 
     def resource_path(self, remote):
         if remote == ResourceType.SIYUAN:
-            return posixpath.join(setting.ASSETS_SUB_DIR, self.filename)
+            return posixpath.join(SiyuanConfig.assets_sub_dir, self.filename)
 
     async def parse(self, keep_ori):
         if not await self._GetResource():
@@ -56,12 +57,11 @@ class SiyuanBlockResource:
             return False
         self.resource = resource.group()
         self.url = re.search(self.resource_link_pattern, self.resource).group(1)  # 资源链接
-        self.image_path = self.url.replace("%20", "_")  # 将空格的转义还原
+        self.image_path = string.restore_space_escape(self.url)
         self.typ = file.get_file_typ(self.image_path, self.markdown)  # 获取文件类型
         if not self.typ:
             return False
-        file_info = await file.get_file_info_by_type(self.url, self.typ)
-        if not file_info:
+        if not (file_info := await file.get_file_info_by_type(self.url, self.typ)):
             return False
         self.file, self.file_md5, self.file_size = file_info
         return True
@@ -120,26 +120,27 @@ class Record(metaclass=SingletonMeta):
         self.md5_name_map = {}
 
     def load_data(self):
-        entity_log.info("load_record | start")
-        if os.path.exists(path := posixpath.join(setting.RECORD_PATH, "siyuan_name.json")):
-            with open(path, "r", encoding="utf8") as f:
+        entity_log.info("Record.load_data | start")
+        if os.path.exists(path := posixpath.join(SiyuanConfig().record_path, "siyuan_name.json")):
+            with open(path, "r", encoding=setting.UTF8) as f:
                 self.name = json.load(f)
-        if os.path.exists(path := posixpath.join(setting.RECORD_PATH, "name_md5_map.json")):
-            with open(path, "r", encoding="utf8") as f:
+        if os.path.exists(path := posixpath.join(SiyuanConfig().record_path, "name_md5_map.json")):
+            with open(path, "r", encoding=setting.UTF8) as f:
                 self.name_md5_map = json.load(f)
         self.build_image()
-        entity_log.info("load_record | finished")
+        entity_log.info("Record.load_data | finished")
 
     def build_image(self):
         for name, md5 in self.name_md5_map.items():
             self.md5_name_map.setdefault(md5, set()).add(name)
 
     def save(self):
-        entity_log.info("save_record | ")
-        with open(posixpath.join(setting.RECORD_PATH, "siyuan_name.json"), "w", encoding="utf8") as f:
+        entity_log.info("Record.save | start")
+        with open(posixpath.join(SiyuanConfig().record_path, "siyuan_name.json"), "w", encoding=setting.UTF8) as f:
             json.dump(self.name, f, ensure_ascii=False, indent=4)
-        with open(posixpath.join(setting.RECORD_PATH, "name_md5_map.json"), "w", encoding="utf8") as f:
+        with open(posixpath.join(SiyuanConfig().record_path, "name_md5_map.json"), "w", encoding=setting.UTF8) as f:
             json.dump(self.name_md5_map, f, ensure_ascii=False, indent=4)
+        entity_log.info("Record.save | finished")
 
     @staticmethod
     def auto_record(func):
@@ -163,9 +164,9 @@ class Record(metaclass=SingletonMeta):
     def check_exist_ori_file(self, md5, filename):
         if exist_file_names := self.md5_name_map.get(md5):
             if filename in exist_file_names:
-                entity_log.debug(f"use old name | filename:{filename}")
+                entity_log.debug(f"Record.check_exist_ori_file | use old name | filename:{filename}")
                 return True
-            entity_log.warning(f"文件已存在 但 md5不匹配 | exist:{exist_file_names} filename:{filename}")
+            entity_log.warning(f"Record.check_exist_ori_file | 文件已存在但md5不匹配 | exist:{exist_file_names} filename:{filename}")
         return False
 
     def reset_name(self, resources: typing.Iterable[SiyuanBlockResource]):
@@ -177,7 +178,7 @@ class Record(metaclass=SingletonMeta):
                 file_name = file_name[:-len(suffix) - 1]
             # 只保留不包含 num_tag 的原始文件名
             self.name[file_name.replace(setting.num_tag, "_") + ext] += 1
-        with open(posixpath.join(setting.RECORD_PATH, "siyuan_name.json"), "w", encoding="utf8") as f:
+        with open(posixpath.join(SiyuanConfig().record_path, "siyuan_name.json"), "w", encoding=setting.UTF8) as f:
             json.dump(self.name, f, ensure_ascii=False, indent=4)
 
 
