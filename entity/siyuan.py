@@ -60,8 +60,7 @@ class SiyuanBlockResource:
         self.typ = file.get_file_typ(self.image_path, self.markdown)  # 获取文件类型
         if not self.typ:
             return False
-        file_info = await file.get_file_info_by_type(self.url, self.typ)
-        if not file_info:
+        if not (file_info := await file.get_file_info_by_type(self.url, self.typ)):
             return False
         self.file, self.file_md5, self.file_size = file_info
         return True

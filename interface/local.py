@@ -69,7 +69,7 @@ class ISiyuan(IBase):
         return new_url
 
     @classmethod
-    async def get_siyuan_resource_record(cls, keep_ori=False) -> (dict[int, SiyuanBlockResource], dict[int, ResourceCache]):
+    async def get_resource_record(cls, keep_ori=False) -> (dict[int, SiyuanBlockResource], dict[int, ResourceCache]):
         sql_where = SQLWhere.sep.join([SQLWhere.type_in])
         resource_dict = await cls.async_quick_get_resource(keep_ori=keep_ori, where=sql_where)
         interface_log.info(f"SiyuanAction.do_get_all_siyuan_image | path:{posixpath.join(setting.RECORD_PATH, cls.cache_file_name)}")
@@ -82,7 +82,7 @@ class ISiyuan(IBase):
     # region Check Cache
     @classmethod
     async def renew_cache(cls, keep_ori) -> dict[int, ResourceCache]:
-        _, cache = await cls.get_siyuan_resource_record(keep_ori=keep_ori)
+        _, cache = await cls.get_resource_record(keep_ori=keep_ori)
         return cache
 
     @classmethod

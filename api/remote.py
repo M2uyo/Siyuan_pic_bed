@@ -54,7 +54,7 @@ class APICloud123(metaclass=SingletonMeta):
             "APICloud123.get_token",
             data=json.dumps(setting.cloud_123_SK), headers=setting.cloud_123_default_header
         ).json()
-        return _save_token(response)
+        return _SaveToken(response)
 
     @classmethod
     @auto_header_response
@@ -265,7 +265,7 @@ def _check_token():
     return tokenInfo["accessToken"]
 
 
-def _save_token(response):
+def _SaveToken(response):
     with open(f"{setting.CONFIG_PATH}/token.json", 'w') as fp:
         json.dump(response, fp, indent=4, ensure_ascii=False)
     token = response["data"]["accessToken"]
