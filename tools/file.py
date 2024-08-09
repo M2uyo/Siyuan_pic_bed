@@ -36,7 +36,7 @@ def get_file_typ(image_path, text=None) -> Optional[ResourceType]:
     elif os.path.exists(image_path):
         return ResourceType.LOCAL
     else:
-        file_tools_log.error(f"不支持的图片类型 | path:{image_path} {text}")
+        file_tools_log.error(f"get_file_typ | 不支持的图片类型 | path:{image_path} {text}")
 
 
 def get_file_info(file) -> tuple[str, int]:

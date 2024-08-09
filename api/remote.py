@@ -156,9 +156,9 @@ class APICloud123(metaclass=SingletonMeta):
     def move_file_to_trash(cls, file_ids, header=None):
         def Callback(response: Cloud123Response):
             if response.code == 0:
-                api_log.debug(f"APICloud123.move_file_to_trash | 删除成功 file_ids:{file_ids}")
+                api_log.debug(f"APICloud123.move_file_to_trash | 删除成功 | file_ids:{file_ids}")
             else:
-                api_log.error(f"APICloud123.move_file_to_trash | 删除失败 {response.info}")
+                api_log.error(f"APICloud123.move_file_to_trash | 删除失败 | {response.info}")
             return response.Check()
 
         return Callback, cls.net.Post(
@@ -173,9 +173,9 @@ class APICloud123(metaclass=SingletonMeta):
     def move_file_to_dest_dir(cls, file_ids, dest_dir, header=None):
         def Callback(response: Cloud123Response):
             if response.code == 0:
-                api_log.debug(f"APICloud123.move_file_to_dest_dir | 移动成功 file_ids:{file_ids}")
+                api_log.debug(f"APICloud123.move_file_to_dest_dir | 移动成功 | file_ids:{file_ids}")
             else:
-                api_log.error(f"APICloud123.move_file_to_dest_dir | 移动失败 {response.info}")
+                api_log.error(f"APICloud123.move_file_to_dest_dir | 移动失败 | {response.info}")
             return response.Check()
 
         return Callback, cls.net.Post(
@@ -270,5 +270,5 @@ def _SaveToken(response):
         json.dump(response, fp, indent=4, ensure_ascii=False)
     token = response["data"]["accessToken"]
     expiredAt = response["data"]["expiredAt"]
-    api_log.info(f"远程获取Token成功 | token:{token} expiredAt:{expiredAt}")
+    api_log.info(f"_SaveToken | 远程获取Token成功 | token:{token} expiredAt:{expiredAt}")
     return token

@@ -36,19 +36,19 @@ class ISiyuan(IBase):
                 return
             resource_dict[block["id"]] = block_resource
 
-        interface_log.info(f"ISiyuan.async_quick_get_resource | total_amount: {total_amount}")
+        interface_log.info(f"ISiyuan.async_quick_get_resource | total_amount:{total_amount}")
         for begin in range(0, total_amount, step):
             sql = f"select id, markdown, (select content from blocks where id=b.root_id) as title from blocks b where {where} limit {step} offset {begin};"
             response = await APISiyuan.async_sql_query(sql)
             await asyncio.gather(*(parse_block_resource(block) for block in response['data']))
-        interface_log.info(f"ISiyuan.async_quick_get_resource | len: {len(resource_dict)}")
+        interface_log.info(f"ISiyuan.async_quick_get_resource | len:{len(resource_dict)}")
         return resource_dict
 
     @classmethod
     def is_same_as_record(cls, filename, record_path):
         """校验是否已经是siyuan:assets"""
         if posixpath.join(setting.ASSETS_SUB_DIR, filename) == record_path:
-            interface_log.debug("ICloud123.already_in | filename")
+            interface_log.debug(f"ICloud123.is_same_as_record | filename:{filename}")
             return True
         return False
 
@@ -62,17 +62,17 @@ class ISiyuan(IBase):
         save_path, new_url = cls._GetSaveInfo(None, resource.filename)
         # 以二进制方式写入文件
         if posixpath.exists(save_path) and web_file_info == await get_file_info_by_type(save_path, resource.typ):
-            interface_log.warning(f"SiyuanTools.save_download_resource | info:图片在本地已经存在 img_url:{resource.url} save_path:{save_path}")
+            interface_log.warning(f"ISiyuan.receive | 图片在本地已经存在 | img_url:{resource.url} save_path:{save_path}")
         else:
             await async_save_data_to_local_file(save_path, web_file_data)
-        interface_log.log(log_level, f"SiyuanTools.save_download_resource | info:图片已成功保存 img_url:{resource.url} save_path:{save_path}")
+        interface_log.log(log_level, f"ISiyuan.receive | 图片已成功保存 | img_url:{resource.url} save_path:{save_path}")
         return new_url
 
     @classmethod
     async def get_resource_record(cls, keep_ori=False) -> (dict[int, SiyuanBlockResource], dict[int, ResourceCache]):
         sql_where = SQLWhere.sep.join([SQLWhere.type_in])
         resource_dict = await cls.async_quick_get_resource(keep_ori=keep_ori, where=sql_where)
-        interface_log.info(f"SiyuanAction.do_get_all_siyuan_image | path:{posixpath.join(setting.RECORD_PATH, cls.cache_file_name)}")
+        interface_log.info(f"ISiyuan.get_resource_record | path:{posixpath.join(setting.RECORD_PATH, cls.cache_file_name)}")
         json_info = {_id: resource.dump() for _id, resource in resource_dict.items()}
         with open(posixpath.join(setting.RECORD_PATH, cls.cache_file_name), "w", encoding="utf8") as f:
             json.dump(json_info, f, ensure_ascii=False, indent=4)

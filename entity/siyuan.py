@@ -8,9 +8,9 @@ from typing import Optional
 
 import setting
 from define.base import ResourceType
+from log import get_logger
 from model.siyuan import ResourceCache
 from tools import string, file
-from log import get_logger
 from tools.base import SingletonMeta
 from tools.file import get_file_name_and_extension, async_get_file_data
 
@@ -119,7 +119,7 @@ class Record(metaclass=SingletonMeta):
         self.md5_name_map = {}
 
     def load_data(self):
-        entity_log.info("load_record | start")
+        entity_log.info("Record.load_data | start")
         if os.path.exists(path := posixpath.join(setting.RECORD_PATH, "siyuan_name.json")):
             with open(path, "r", encoding="utf8") as f:
                 self.name = json.load(f)
@@ -127,18 +127,19 @@ class Record(metaclass=SingletonMeta):
             with open(path, "r", encoding="utf8") as f:
                 self.name_md5_map = json.load(f)
         self.build_image()
-        entity_log.info("load_record | finished")
+        entity_log.info("Record.load_data | finished")
 
     def build_image(self):
         for name, md5 in self.name_md5_map.items():
             self.md5_name_map.setdefault(md5, set()).add(name)
 
     def save(self):
-        entity_log.info("save_record | ")
+        entity_log.info("Record.save | start")
         with open(posixpath.join(setting.RECORD_PATH, "siyuan_name.json"), "w", encoding="utf8") as f:
             json.dump(self.name, f, ensure_ascii=False, indent=4)
         with open(posixpath.join(setting.RECORD_PATH, "name_md5_map.json"), "w", encoding="utf8") as f:
             json.dump(self.name_md5_map, f, ensure_ascii=False, indent=4)
+        entity_log.info("Record.save | finished")
 
     @staticmethod
     def auto_record(func):
@@ -162,9 +163,9 @@ class Record(metaclass=SingletonMeta):
     def check_exist_ori_file(self, md5, filename):
         if exist_file_names := self.md5_name_map.get(md5):
             if filename in exist_file_names:
-                entity_log.debug(f"use old name | filename:{filename}")
+                entity_log.debug(f"Record.check_exist_ori_file | use old name | filename:{filename}")
                 return True
-            entity_log.warning(f"文件已存在 但 md5不匹配 | exist:{exist_file_names} filename:{filename}")
+            entity_log.warning(f"Record.check_exist_ori_file | 文件已存在但md5不匹配 | exist:{exist_file_names} filename:{filename}")
         return False
 
     def reset_name(self, resources: typing.Iterable[SiyuanBlockResource]):
