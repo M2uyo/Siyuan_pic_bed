@@ -72,9 +72,10 @@ class ISiyuan(IBase):
     async def get_resource_record(cls, keep_ori=False) -> (dict[int, SiyuanBlockResource], dict[int, ResourceCache]):
         sql_where = SQLWhere.sep.join([SQLWhere.type_in])
         resource_dict = await cls.async_quick_get_resource(keep_ori=keep_ori, where=sql_where)
-        interface_log.info(f"ISiyuan.get_resource_record | path:{posixpath.join(setting.RECORD_PATH, cls.cache_file_name)}")
+        cache_path = posixpath.join(setting.RECORD_PATH, cls.cache_file_name)
+        interface_log.info(f"ISiyuan.get_resource_record | path:{cache_path}")
         json_info = {_id: resource.dump() for _id, resource in resource_dict.items()}
-        with open(posixpath.join(setting.RECORD_PATH, cls.cache_file_name), "w", encoding="utf8") as f:
+        with open(cache_path, "w", encoding="utf8") as f:
             json.dump(json_info, f, ensure_ascii=False, indent=4)
         Record().reset_name(resource_dict.values())
         return resource_dict, json_info
