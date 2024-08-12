@@ -1,8 +1,8 @@
-from pools import GetAioSession
-from tools.base import SingletonMeta
+import requests
 
 from log import get_logger
-import requests
+from pools import GetAioSession
+from tools.base import SingletonMeta
 
 api_log = get_logger("api_base")
 
