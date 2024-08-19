@@ -25,7 +25,7 @@ class ConfigManager(metaclass=SingletonMeta):
     def load_config(self, config: ConfigModel):
         _siyuan = self._siyuan.setdefault(config.siyuan.token, SiyuanConfig())
         if _siyuan.init:
-            if not _siyuan.check_repeat_token(config.siyuan):
+            if _siyuan.check_repeat_token(config.siyuan):
                 from api.siyuan import APISiyuan
                 APISiyuan.push_err_msg(f"重复的token | token:{config.siyuan.token} path1:{config.siyuan.data_dir} path2:{_siyuan.data_dir}")
                 router_log.error(f"ConfigManager.load_config | 重复的token | token:{config.siyuan.token} path1:{config.siyuan.data_dir} path2:{_siyuan.data_dir}")
