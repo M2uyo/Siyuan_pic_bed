@@ -10,6 +10,7 @@ class ConfigMsg:
     NOT_INIT = "配置未初始化"
     ILLEGAL_SOURCE = "来源配置非法"
     CONFIGURATION_ERROR = "配置错误"
+    TOKEN_NOT_EXIST = "token 不存在"
 
 
 class NotebookMethod:

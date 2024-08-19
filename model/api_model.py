@@ -5,7 +5,11 @@ from pydantic import BaseModel
 from define.base import EndPoint
 
 
-class NoteBookModel(BaseModel):
+class SiyuanBaseModel(BaseModel):
+    token: str
+
+
+class NoteBookModel(SiyuanBaseModel):
     method: str = ""
     notebook_id: str = ""
 
