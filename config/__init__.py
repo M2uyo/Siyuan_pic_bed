@@ -1,16 +1,33 @@
+from api.siyuan import APISiyuan
 from config.remote import Cloud123Config
 from config.siyuan import SiyuanConfig
 from model.api_model import ConfigModel
 from tools.base import SingletonMeta
+from log import get_logger
+
+router_log = get_logger('router')
 
 
 class ConfigManager(metaclass=SingletonMeta):
     def __init__(self):
-        self.siyuan = SiyuanConfig()
+        self._siyuan: dict[str, SiyuanConfig] = {}
         self.cloud_123 = Cloud123Config()
         self.isConfigCompleted = False
 
+        self.cur_token = None
+
+    @property
+    def siyuan(self):
+        return self._siyuan[self.cur_token]
+
     def load_config(self, config: ConfigModel):
-        self.siyuan.load_config(config.siyuan)
+        _siyuan = self._siyuan.setdefault(config.siyuan.token, SiyuanConfig())
+        if _siyuan.init and not _siyuan.check_repeat_token(config.siyuan):
+            APISiyuan.push_err_msg(f"重复的token | token:{config.siyuan.token} path1:{config.siyuan.data_dir} path2:{_siyuan.data_dir}")
+            router_log.error("ConfigManager.load_config | 重复的token | token:{config.siyuan.token} path1:{config.siyuan.data_dir} path2:{_siyuan.data_dir}")
+            assert False
+        _siyuan.load_config(config.siyuan)
         self.cloud_123.sync_config(config.cloud_123)
+        self.cur_token = config.siyuan.token
         self.isConfigCompleted = True
+        return True
