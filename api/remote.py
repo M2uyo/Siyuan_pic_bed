@@ -172,10 +172,14 @@ class APICloud123(metaclass=SingletonMeta):
     @auto_header_response
     def move_file_to_dest_dir(cls, file_ids, dest_dir, header=None):
         def Callback(response: Cloud123Response):
+            if response.code == 1 and response.message == APIErrorMessage.文件移动_已在当前文件夹:
+                cls.move_file_to_trash(file_ids)
+                return True
             if response.code == 0:
                 api_log.debug(f"APICloud123.move_file_to_dest_dir | 移动成功 | file_ids:{file_ids}")
             else:
                 api_log.error(f"APICloud123.move_file_to_dest_dir | 移动失败 | {response.info}")
+
             return response.Check()
 
         return Callback, cls.net.Post(
