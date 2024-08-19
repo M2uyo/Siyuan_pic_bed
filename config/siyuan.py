@@ -28,10 +28,15 @@ class SiyuanConfig(metaclass=SingletonMeta):
         self.config_path: str = ""
         self.record_path: str = ""
 
+        self.init = False  # 是否已经完成了初始化
+
     def load_config(self, config: SiyuanConfigModel):
         self.header["Authorization"] = config.token
         self.data_dir = posixpath.join(config.data_dir)
         self._Parse()
+
+    def check_repeat_token(self, config: SiyuanConfigModel):
+        return posixpath.join(config.data_dir) != self.data_dir
 
     def _Parse(self):
         self.assets_path = posixpath.join(self.data_dir, self.assets_sub_dir)
@@ -39,6 +44,7 @@ class SiyuanConfig(metaclass=SingletonMeta):
         self.this_plugin_path = posixpath.join(self.plugins_path, self.plugin_name)
         self.config_path = exist_or_create(posixpath.join(self.this_plugin_path, self.config_sub_dir))
         self.record_path = exist_or_create(posixpath.join(self.config_path, self.record_sub_dir))
+        self.init = True
 
     def dump(self) -> dict:
         return {

@@ -181,6 +181,19 @@ class Record(metaclass=SingletonMeta):
         with open(posixpath.join(SiyuanConfig().record_path, "siyuan_name.json"), "w", encoding=setting.UTF8) as f:
             json.dump(self.name, f, ensure_ascii=False, indent=4)
 
+    def clear_name(self, filepath):
+        _, filename, _ = file.get_file_name_and_extension(filepath)
+        base_filename, ori_num = string.get_true_file_name(filename)
+        if self.name.get(base_filename) == ori_num - 1:
+            if ori_num == 1:
+                self.name.pop(base_filename)
+            else:
+                self.name[base_filename] -= 1
+        names: Optional[set] = self.md5_name_map.get(
+            self.name_md5_map.pop(filename, None), None
+        )
+        names and names.remove(filename)
+
 
 def _GetSourceName(text):
     """

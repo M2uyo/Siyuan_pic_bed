@@ -7,7 +7,7 @@ from model.api_model import RemoteModel, APIResponse
 
 router = APIRouter()
 
-router_log = get_logger("router_check")
+router_log = get_logger("router_local")
 
 
 @router.post("/lack")

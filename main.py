@@ -1,19 +1,20 @@
 import asyncio
-import logging
 
 import uvicorn
 from fastapi import FastAPI
 
-import setting
-from pools import AioSession
 from router import root_router
-from tools.net import is_port_in_use
 
 app = FastAPI()
 app.include_router(root_router)
 
 
 async def main():
+    import logging
+    from pools import AioSession
+    import setting
+    from tools.net import is_port_in_use
+
     if is_port_in_use(setting.PORT):
         logging.error("port occupied")
         return

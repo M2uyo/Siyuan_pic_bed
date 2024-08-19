@@ -4,7 +4,7 @@ import logging
 from api.siyuan import APISiyuan
 from define.base import ResourceType, EndPoint
 from define.siyuan import SiyuanMessage
-from entity.siyuan import SiyuanBlockResource
+from entity.siyuan import SiyuanBlockResource, Record
 from interface import EndPointMap, ISiyuan, ICloud123
 from log import get_logger
 from tools.base import SingletonMeta
@@ -59,6 +59,11 @@ class SiyuanControl(metaclass=SingletonMeta):
     @classmethod
     async def SetCustomRecord(cls, notebook_id, record):
         await APISiyuan.set_block_attr(notebook_id, {
-            "custom-record": json.dumps(record),
+            "custom-record": json.dumps(record, ensure_ascii=False),
         })
+
+    @classmethod
+    async def clear_deleted_resource_record(cls, resource, record):
+        for deleted in record.keys() - resource.keys():
+            Record().clear_name(record.pop(deleted))
     # endregion
