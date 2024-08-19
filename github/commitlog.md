@@ -1,3 +1,16 @@
+## v2.2
+
+#### fix
+
+- [missing await](https://github.com/M2uyo/Siyuan_pic_bed/commit/23aae8b514f199d53621cb131a0c2c9c4e6c6fda)
+- [unable to find home directory](https://github.com/M2uyo/Siyuan_pic_bed/commit/8d09c263835fc7c86fccd68d988e82a9c794fc90)
+
+#### feat
+
+- [Request verification for different tokens to determine different workspaces](https://github.com/M2uyo/Siyuan_pic_bed/commit/07098f9a3dba34394d9a76602d93238fb2eac899)
+- [Support simultaneous use of multiple spaces to distinguish projects through tokens and project paths](https://github.com/M2uyo/Siyuan_pic_bed/commit/8b688c343ea58d71ba01984b1adb13f83f256124)
+- [If the resource is deleted, delete the corresponding storage information](https://github.com/M2uyo/Siyuan_pic_bed/commit/d075623673e1ea034a9e0bcbce0101257874aae7)
+
 ## v2.1
 
 #### fix
