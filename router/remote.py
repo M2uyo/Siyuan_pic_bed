@@ -17,7 +17,7 @@ async def repeat(request: RemoteModel):
     repeat_info = await ActionRemote.check_repeat(request.remote, request.renew_remote)
     data = {"result": True, "message": define.IMsg.OK}
     if request.delete:
-        await ActionRemote.del_repeat(repeat_info, save_amount=1)
+        ActionRemote.del_repeat(repeat_info, save_amount=1)
 
     if request.show:
         data["data"] = repeat_info
