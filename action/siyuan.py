@@ -15,7 +15,7 @@ action_log = get_logger("action_siyuan")
 class SiyuanAction(metaclass=SingletonMeta):
     @classmethod
     async def download_single_notebook_resource(cls, notebook_id, toast=True):
-        sql_where = SQLWhere.sep.join([SQLWhere.root_id.format(root_id=notebook_id), SQLWhere.type_in])
+        sql_where = SQLWhere.sep_and.join([SQLWhere.root_id.format(root_id=notebook_id), SQLWhere.type_in])
         resource_dict = await ISiyuan.async_quick_get_resource(where=sql_where)
         custom_record: CustomRecordT = await SiyuanControl.GetCustomRecord(notebook_id)
         success_amount = sum(await asyncio.gather(*(
@@ -31,7 +31,7 @@ class SiyuanAction(metaclass=SingletonMeta):
 
     @classmethod
     async def upload_single_notebook_resource(cls, notebook_id, toast=True):
-        sql_where = SQLWhere.sep.join([SQLWhere.root_id.format(root_id=notebook_id), SQLWhere.type_in])
+        sql_where = SQLWhere.sep_and.join([SQLWhere.root_id.format(root_id=notebook_id), SQLWhere.type_in])
         resource_dict = await ISiyuan.async_quick_get_resource(where=sql_where)
         custom_record: CustomRecordT = await SiyuanControl.GetCustomRecord(notebook_id)
         success_amount = sum(await asyncio.gather(*(

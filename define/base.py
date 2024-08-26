@@ -18,7 +18,9 @@ class CommonStr:
 
 
 class SQLWhere:
-    sep = " and "
+    blocks_b = "blocks b"
+    sep_and = " and "
     type_in = "b.type in ('p')"
+    type_in_f = "b.type in ({types})"
     notebook_id = "b.id='{notebook_id}'"
     root_id = "b.root_id='{root_id}'"

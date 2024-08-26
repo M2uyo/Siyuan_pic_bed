@@ -28,7 +28,7 @@ class ISiyuan(IBase):
         """快速获取带有资源的块数据"""
         if not where:
             where = " and ".join([f"markdown like %{Cloud123Config().remote_path}%", SQLWhere.type_in])
-        total_amount = (await APISiyuan.async_sql_query(f"select count(*) as total from blocks b where {where}"))['data'][0]['total']
+        total_amount = (await APISiyuan.async_sql_query(f"select count(*) as total from {SQLWhere.blocks_b} where {where}"))['data'][0]['total']
         resource_dict = {}
 
         async def parse_block_resource(block):
@@ -39,7 +39,7 @@ class ISiyuan(IBase):
 
         interface_log.info(f"ISiyuan.async_quick_get_resource | total_amount:{total_amount}")
         for begin in range(0, total_amount, step):
-            sql = f"select id, markdown, (select content from blocks where id=b.root_id) as title from blocks b where {where} limit {step} offset {begin};"
+            sql = f"select id, markdown, (select content from blocks where id=b.root_id) as title from {SQLWhere.blocks_b} where {where} limit {step} offset {begin};"
             response = await APISiyuan.async_sql_query(sql)
             await asyncio.gather(*(parse_block_resource(block) for block in response['data']))
         interface_log.info(f"ISiyuan.async_quick_get_resource | len:{len(resource_dict)}")
@@ -71,7 +71,7 @@ class ISiyuan(IBase):
 
     @classmethod
     async def get_resource_record(cls, keep_ori=False) -> (dict[int, SiyuanBlockResource], dict[int, ResourceCache]):
-        sql_where = SQLWhere.sep.join([SQLWhere.type_in])
+        sql_where = SQLWhere.sep_and.join([SQLWhere.type_in])
         resource_dict = await cls.async_quick_get_resource(keep_ori=keep_ori, where=sql_where)
         cache_path = posixpath.join(SiyuanConfig().record_path, cls.cache_file_name)
         interface_log.info(f"ISiyuan.get_resource_record | path:{cache_path}")
