@@ -7,6 +7,7 @@ from define.base import EndPoint
 
 class SiyuanBaseModel(BaseModel):
     token: str
+    toast: bool = True
 
 
 class NoteBookModel(SiyuanBaseModel):
