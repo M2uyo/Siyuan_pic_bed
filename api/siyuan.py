@@ -18,9 +18,7 @@ class APISiyuan(BaseAPI):
         session = GetAioSession()
         async with session.post(
                 SiyuanConfig.server_point + "query/sql",
-                data=json.dumps({
-                    "stmt": stmt
-                }), headers=SiyuanConfig().header
+                data=f'{{"stmt": "{stmt}"}}', headers=SiyuanConfig().header
         ) as response:
             return await response.json()
 
