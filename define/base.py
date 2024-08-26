@@ -24,3 +24,4 @@ class SQLWhere:
     type_in_f = "b.type in ({types})"
     notebook_id = "b.id='{notebook_id}'"
     root_id = "b.root_id='{root_id}'"
+    ial_like = "b.ial like '{like}'"

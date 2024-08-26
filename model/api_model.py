@@ -15,6 +15,11 @@ class NoteBookModel(SiyuanBaseModel):
     notebook_id: str = ""
 
 
+class SiyuanIconModel(SiyuanBaseModel):
+    old_icon: str = ""
+    new_icon: str = ""
+
+
 class Cloud123Model(BaseModel):
     method: str = ""
 

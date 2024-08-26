@@ -44,3 +44,16 @@ class SiyuanAction(metaclass=SingletonMeta):
             toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_无更改)
         await SiyuanControl.SetCustomRecord(notebook_id, custom_record)
         return resource_dict
+
+    @classmethod
+    async def MultiReplaceDocIcon(cls, old_icon, new_icon, toast=True):
+        resource_list = await ISiyuan.GetDocByIcon(old_icon)
+        if not resource_list:
+            toast and await APISiyuan.async_push_msg(SiyuanMessage.替换图标_无更改.format(icon=old_icon))
+            return
+        await asyncio.gather(*(
+            APISiyuan.set_block_attr(_id, {"icon": new_icon})
+            for _id in resource_list
+        ))
+        toast and await APISiyuan.async_push_msg(SiyuanMessage.替换图标_成功.format(amount=len(resource_list), old_icon=old_icon, new_icon=new_icon))
+        return resource_list

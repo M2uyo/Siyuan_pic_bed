@@ -97,6 +97,28 @@ class ISiyuan(IBase):
 
     # endregion Check Cache
 
+    # region Icon
+    @classmethod
+    async def GetDocByIcon(cls, icon, step=200):
+        where = SQLWhere.sep_and.join([
+            SQLWhere.type_in_f.format(types="'d'"),
+            SQLWhere.ial_like.format(like=rf"%icon=\"{icon}\"%"),
+        ])
+        total_amount = (await APISiyuan.async_sql_query(f"select count(*) as total from {SQLWhere.blocks_b} where {where}"))['data'][0]['total']
+        resource_list = []
+
+        def parse_response(response):
+            for block in response['data']:
+                resource_list.append(block["id"])
+
+        for begin in range(0, total_amount, step):
+            sql = f"select id from {SQLWhere.blocks_b} where {where} limit {step} offset {begin};"
+            parse_response(await APISiyuan.async_sql_query(sql))
+        return resource_list
+
+    # endregion Icon
+
+    # region Private
     @classmethod
     def _GetSaveInfo(cls, save_dir, filename):
         """
@@ -115,3 +137,5 @@ class ISiyuan(IBase):
         save_path = posixpath.join(save_dir, filename)
         link_path = posixpath.join(link_dir, filename)
         return unification_file_path(save_path), unification_file_path(link_path)
+
+    # endregion Private
