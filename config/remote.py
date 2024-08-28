@@ -1,6 +1,6 @@
 import json
 
-from model.api_model import Cloud123ConfigModel
+from model.api_model import Cloud123ConfigModel, PicGoConfigModel
 from tools.base import SingletonMeta
 
 
@@ -28,6 +28,8 @@ class Cloud123Config(metaclass=SingletonMeta):
         self.init = True
 
     def dump(self):
+        if not self.init:
+            return "Not init"
         return {
             "key": self.key,
             "dir_id": self.dir_id,
@@ -46,6 +48,15 @@ class PicGoConfig(metaclass=SingletonMeta):
         self.remote_path: str = ""
         self.init = False
 
-    def sync_config(self, config: Cloud123ConfigModel):
+    def sync_config(self, config: PicGoConfigModel):
+        if not config:
+            return
         self.remote_path = config.remote_path
         self.init = True
+
+    def dump(self):
+        if not self.init:
+            return "Not init"
+        return {
+            "remote_path": self.remote_path,
+        }

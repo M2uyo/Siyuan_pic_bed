@@ -1,4 +1,5 @@
 import posixpath
+from typing import Union
 
 from model.api_model import SiyuanConfigModel
 from tools.base import SingletonMeta, exist_or_create
@@ -54,7 +55,9 @@ class SiyuanConfig(metaclass=SingletonMeta):
     def av_file_path(self, av_id):
         return posixpath.join(self.data_dir, self.storage_sub_dir, self.av_sub_dir, f"{av_id}{self.av_file_extension}")
 
-    def dump(self) -> dict:
+    def dump(self) -> Union[dict, str]:
+        if not self.init:
+            return "Not init"
         return {
             "header": self.header,
             "data_dir": self.data_dir,

@@ -41,7 +41,7 @@ class SiyuanControl(metaclass=SingletonMeta):
     async def upload_database_resource(cls, resource: SiyuanDataBaseResource, custom_record: list, log_level=logging.INFO, end_point_enum=EndPoint.CLOUD_123, toast=True):
         end_point = EndPointMap[end_point_enum]
         config = EndPointConfigMap[end_point_enum]
-        exist, not_exist, redundant = end_point.is_same_as_record_database(resource, config, custom_record)
+        exist, not_exist, redundant = end_point.is_same_as_record_database(resource, config.remote_path, custom_record)
         if not not_exist:
             if redundant:
                 for url in redundant:

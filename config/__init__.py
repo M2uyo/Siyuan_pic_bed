@@ -33,5 +33,6 @@ class ConfigManager(metaclass=SingletonMeta):
             router_log.info(f"ConfigManager.load_config | new config | token:{config.siyuan.token} path:{config.siyuan.data_dir}")
         _siyuan.load_config(config.siyuan)
         self.cloud_123.sync_config(config.cloud_123)
+        self.picgo.sync_config(config.picgo)
         self.cur_token = config.siyuan.token
         return True
