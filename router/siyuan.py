@@ -23,7 +23,7 @@ async def siyuan_notebooks(request: NoteBookModel):
         return APIResponse(data={"result": False, "message": define.IMsg.BAN})
     elif request.method == define.NotebookMethod.上传指定文档图片:
         # try:
-        await SiyuanAction.upload_single_notebook_resource(request.notebook_id)
+        await SiyuanAction.upload_single_notebook_resource(request.notebook_id, end_point=request.end_point)
         # except Exception as e:
         #     await APISiyuan.push_err_msg(f"上传失败: {str(e)}")
         #     return APIResponse({"result": False, "message": str(e)})

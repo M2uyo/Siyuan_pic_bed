@@ -30,12 +30,12 @@ class SiyuanAction(metaclass=SingletonMeta):
         return resource_dict
 
     @classmethod
-    async def upload_single_notebook_resource(cls, notebook_id, toast=True):
+    async def upload_single_notebook_resource(cls, notebook_id, end_point, toast=True):
         sql_where = SQLWhere.sep_and.join([SQLWhere.root_id.format(root_id=notebook_id), SQLWhere.type_in])
         resource_dict = await ISiyuan.async_quick_get_resource(where=sql_where)
         custom_record: CustomRecordT = await SiyuanControl.GetCustomRecord(notebook_id)
         success_amount = sum(await asyncio.gather(*(
-            SiyuanControl.upload_file(resource, custom_record)
+            SiyuanControl.upload_file(resource, custom_record, end_point_enum=end_point)
             for resource in resource_dict.values()
         )))
         if success_amount:

@@ -15,6 +15,7 @@ class SiyuanBaseModel(BaseModel):
 class NoteBookModel(SiyuanBaseModel):
     method: str = ""
     notebook_id: str = ""
+    end_point: EndPoint = EndPoint.CLOUD_123
 
 
 class SiyuanIconModel(SiyuanBaseModel):
