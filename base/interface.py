@@ -10,6 +10,8 @@ cloud_log = get_logger("cloud_base")
 
 
 class IBase(metaclass=SingletonMeta):
+    config = None
+
     @classmethod
     def is_same_as_record(cls, resource: SiyuanBlockResource, record_path):
         if posixpath.join(resource.file_pre_dir, resource.filename) == record_path:
@@ -18,12 +20,15 @@ class IBase(metaclass=SingletonMeta):
         return False
 
     @classmethod
-    def is_same_as_record_database(cls, resource: SiyuanDataBaseResource, record_path: list):
+    def is_same_as_record_database(cls, resource: SiyuanDataBaseResource, remote_path, record_path: list):
         exist, not_exist = [], {}
         filePath = set()
         for index, url in resource.urls.items():
             if url["path"] in record_path:
-                exist.append(url)
+                if url["path"].startswith(remote_path):
+                    exist.append(url)
+                else:
+                    not_exist[index] = url
             else:
                 not_exist[index] = url
             filePath.add(url["path"])

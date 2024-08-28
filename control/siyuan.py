@@ -5,7 +5,7 @@ from api.siyuan import APISiyuan
 from define.base import ResourceType, EndPoint
 from define.siyuan import SiyuanMessage
 from entity.siyuan import SiyuanBlockResource, Record, SiyuanDataBaseResource
-from interface import EndPointMap, ISiyuan, ICloud123
+from interface import EndPointMap, ISiyuan, ICloud123, EndPointConfigMap
 from log import get_logger
 from tools.base import SingletonMeta
 
@@ -39,8 +39,9 @@ class SiyuanControl(metaclass=SingletonMeta):
 
     @classmethod
     async def upload_database_resource(cls, resource: SiyuanDataBaseResource, custom_record: list, log_level=logging.INFO, end_point_enum=EndPoint.CLOUD_123, toast=True):
-        end_point: ICloud123 = EndPointMap[end_point_enum]
-        exist, not_exist, redundant = end_point.is_same_as_record_database(resource, custom_record)
+        end_point = EndPointMap[end_point_enum]
+        config = EndPointConfigMap[end_point_enum]
+        exist, not_exist, redundant = end_point.is_same_as_record_database(resource, config, custom_record)
         if not not_exist:
             if redundant:
                 for url in redundant:

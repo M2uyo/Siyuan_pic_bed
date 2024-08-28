@@ -53,6 +53,7 @@ class SiyuanConfigModel(BaseModel):
 
 class ConfigModel(BaseModel):
     cloud_123: Cloud123ConfigModel = None
+    picgo: PicGoConfigModel = None
     siyuan: SiyuanConfigModel
 
 
