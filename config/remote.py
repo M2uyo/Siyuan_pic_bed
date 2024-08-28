@@ -33,3 +33,7 @@ class Cloud123Config(metaclass=SingletonMeta):
 
     def key_dump(self):
         return json.dumps(self.key)
+
+
+class PicGoConfig(metaclass=SingletonMeta):
+    picgo_url = "http://127.0.0.1:36677/upload"

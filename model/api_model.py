@@ -1,4 +1,6 @@
+import typing
 from collections import UserDict
+from typing import NamedTuple
 
 from pydantic import BaseModel
 
@@ -59,3 +61,8 @@ class APIResponse(UserDict):
         super().__init__({
             "data": data
         })
+
+
+class PicGoResponse(NamedTuple):
+    success: bool
+    result: typing.Any
