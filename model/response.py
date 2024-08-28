@@ -19,6 +19,7 @@ class Cloud123FileInfo(typing.TypedDict):
 
 class APIErrorMessage:
     文件重复 = "该目录下文件名重复无法创建"
+    文件移动_已在当前文件夹 = "文件已在当前文件夹中，请选择其他文件夹"
 
 
 class Cloud123Response:

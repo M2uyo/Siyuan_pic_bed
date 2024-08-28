@@ -4,8 +4,8 @@ import logging
 from api.siyuan import APISiyuan
 from define.base import ResourceType, EndPoint
 from define.siyuan import SiyuanMessage
-from entity.siyuan import SiyuanBlockResource, Record
-from interface import EndPointMap, ISiyuan, ICloud123
+from entity.siyuan import SiyuanBlockResource, Record, SiyuanDataBaseResource
+from interface import EndPointMap, ISiyuan, ICloud123, EndPointConfigMap
 from log import get_logger
 from tools.base import SingletonMeta
 
@@ -29,7 +29,7 @@ class SiyuanControl(metaclass=SingletonMeta):
     @classmethod
     async def upload_file(cls, resource: SiyuanBlockResource, custom_record, log_level=logging.INFO, end_point_enum=EndPoint.CLOUD_123, toast=True):
         end_point: ICloud123 = EndPointMap[end_point_enum]
-        if end_point.is_same_as_record(resource.filename, custom_record.get(resource.id)):
+        if end_point.is_same_as_record(resource, custom_record.get(resource.id)):
             return False
         if not (new_url := await end_point.receive(resource, log_level)):
             return False
@@ -38,10 +38,32 @@ class SiyuanControl(metaclass=SingletonMeta):
         return True
 
     @classmethod
+    async def upload_database_resource(cls, resource: SiyuanDataBaseResource, custom_record: list, log_level=logging.INFO, end_point_enum=EndPoint.CLOUD_123, toast=True):
+        end_point = EndPointMap[end_point_enum]
+        config = EndPointConfigMap[end_point_enum]
+        exist, not_exist, redundant = end_point.is_same_as_record_database(resource, config.remote_path, custom_record)
+        if not not_exist:
+            if redundant:
+                for url in redundant:
+                    custom_record.remove(url)
+            return 0
+        if not (new_urls := await end_point.receive_database(not_exist, log_level)):
+            return 0
+        toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_单列文件.format(filenames=resource.filenames))
+        await cls._UploadDatabaseInfo(resource, new_urls, custom_record)
+        return len(new_urls)
+
+    @classmethod
     async def _UpdateInfo(cls, resource: SiyuanBlockResource, new_url, record):
         new_data = resource.markdown.replace(resource.url, new_url)
         await APISiyuan.update_block(resource.id, new_data)
         record[resource.id] = new_url
+
+    @classmethod
+    async def _UploadDatabaseInfo(cls, resource: SiyuanDataBaseResource, new_urls, record):
+        for index, url in new_urls.items():
+            resource.ref[index]["content"] = url
+        record.extend(new_urls.values())
 
     # region Record
     """
@@ -52,13 +74,15 @@ class SiyuanControl(metaclass=SingletonMeta):
     """
 
     @classmethod
-    async def GetCustomRecord(cls, notebook_id):
-        record = (await APISiyuan.get_block_attr(notebook_id))["data"].get("custom-record", {})
+    async def GetCustomRecord(cls, notebook_id, default=None):
+        if default is None:
+            default = {}
+        record = (await APISiyuan.get_block_attr(notebook_id))["data"].get("custom-record", default)
         return record and json.loads(record)
 
     @classmethod
-    async def SetCustomRecord(cls, notebook_id, record):
-        await APISiyuan.set_block_attr(notebook_id, {
+    async def SetCustomRecord(cls, block_id, record):
+        await APISiyuan.set_block_attr(block_id, {
             "custom-record": json.dumps(record, ensure_ascii=False),
         })
 

@@ -4,7 +4,7 @@ import define
 from action.siyuan import SiyuanAction
 from entity.siyuan import Record
 from interface import ISiyuan
-from model.api_model import APIResponse, NoteBookModel
+from model.api_model import APIResponse, NoteBookModel, SiyuanIconModel, SiyuanDatabaseModel
 
 router = APIRouter()
 
@@ -23,12 +23,27 @@ async def siyuan_notebooks(request: NoteBookModel):
         return APIResponse(data={"result": False, "message": define.IMsg.BAN})
     elif request.method == define.NotebookMethod.上传指定文档图片:
         # try:
-        await SiyuanAction.upload_single_notebook_resource(request.notebook_id)
+        await SiyuanAction.upload_single_notebook_resource(request.notebook_id, end_point=request.end_point)
         # except Exception as e:
         #     await APISiyuan.push_err_msg(f"上传失败: {str(e)}")
         #     return APIResponse({"result": False, "message": str(e)})
         Record().save()
         return APIResponse(data={"result": True, "message": define.IMsg.OK})
+
     elif request.method == define.NotebookMethod.加载文件信息:
         await ISiyuan.get_resource_record(keep_ori=True)
         return APIResponse(data={"result": True, "message": define.IMsg.OK})
+
+
+@router.post("/database")
+async def siyuan_database(request: SiyuanDatabaseModel):
+    if request.method == define.NotebookMethod.上传指定数据库中的所有资源文件:
+        await SiyuanAction.upload_database_resource(request.database_id, end_point=request.end_point)
+        Record().save()
+        return APIResponse(data={"result": True, "message": define.IMsg.OK})
+
+
+@router.post("/icon")
+async def siyuan_icon(request: SiyuanIconModel):
+    await SiyuanAction.MultiReplaceDocIcon(request.old_icon, request.new_icon, toast=request.toast)
+    return APIResponse(data={"result": True, "message": define.IMsg.OK})

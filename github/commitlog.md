@@ -1,3 +1,31 @@
+## v2.3
+
+#### fix
+
+- [double negation leads to judgment errors](https://github.com/M2uyo/Siyuan_pic_bed/commit/c3e59a9648501cb520792f6bd79c64589d2d4f03)
+- [When the same file already exists in the history folder, move it to the recycle bin](https://github.com/M2uyo/Siyuan_pic_bed/commit/55b79b424c8968a3a6c1dfe7c8b2087b9b94244d)
+- [mission await](https://github.com/M2uyo/Siyuan_pic_bed/commit/743097474356f09814906fd30069bc466c2b2580)
+
+#### feat
+
+- [Verify if the remote path is the current URL remote path](https://github.com/M2uyo/Siyuan_pic_bed/commit/51064237591732439cdcb78d67d4520c261f287e)
+- [Allow direct connection to PicGo without initializing the 123 cloud disk configuration](https://github.com/M2uyo/Siyuan_pic_bed/commit/b4e15a5802bf6f1407d0f51df8134311a743d33e)
+- [support uploading resource files from the database](https://github.com/M2uyo/Siyuan_pic_bed/commit/cef5e0c3286a7ef25ee3b0e34df6f502b09f16f0)
+- [Upload API supports selecting Picgo as the upload tool](https://github.com/M2uyo/Siyuan_pic_bed/commit/c5059cbfe83ebeba0d3d9098de3935ac943eaa7e)
+- [extract super methods](https://github.com/M2uyo/Siyuan_pic_bed/commit/af040b21dda636087dd14022250279fd89ac1fc2)
+- [support picgo upload](https://github.com/M2uyo/Siyuan_pic_bed/commit/38569c6aea6b1456e6ccd29f56940c6847a633c5)
+- [replace icon](https://github.com/M2uyo/Siyuan_pic_bed/commit/53a38bbce96cca12e602438dca13dc32b10ed0a0)
+- [manually convert json](https://github.com/M2uyo/Siyuan_pic_bed/commit/4450dcdc60074e666ae8b95a5bbc4e023e2100dd)
+- [SiyuanBaseModel add parameter toast](https://github.com/M2uyo/Siyuan_pic_bed/commit/370fde848a7bc3abf8662a68553ed979e5eda657)
+
+#### optimize
+
+- [get current configuration](https://github.com/M2uyo/Siyuan_pic_bed/commit/6b645ac64d19168b27910fd80ed234b74c7ef6fe)
+
+#### refactor
+
+- [SQLWhere spelling](https://github.com/M2uyo/Siyuan_pic_bed/commit/c997d37640485375a1f0804183bcce722f809039)
+
 ## v2.2
 
 #### fix

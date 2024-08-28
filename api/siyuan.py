@@ -14,13 +14,11 @@ class APISiyuan(BaseAPI):
     @classmethod
     async def async_sql_query(cls, stmt):
         """执行sql语句"""
-        api_log.debug(f"APISiyuan.async_sql_query | stmt:{stmt}")
+        api_log.info(f"APISiyuan.async_sql_query | stmt:{stmt}")
         session = GetAioSession()
         async with session.post(
                 SiyuanConfig.server_point + "query/sql",
-                data=json.dumps({
-                    "stmt": stmt
-                }), headers=SiyuanConfig().header
+                data=f'{{"stmt": "{stmt}"}}', headers=SiyuanConfig().header
         ) as response:
             return await response.json()
 

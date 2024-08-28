@@ -4,7 +4,7 @@ from fastapi import APIRouter
 
 import define
 import setting
-from config import ConfigManager, SiyuanConfig, Cloud123Config
+from config import ConfigManager, SiyuanConfig, Cloud123Config, PicGoConfig
 from model.api_model import APIResponse, ConfigModel
 
 router = APIRouter()
@@ -24,8 +24,6 @@ async def set_config(request: ConfigModel):
 
 @router.get("/config")
 async def get_config():
-    if not ConfigManager().isConfigCompleted:
-        return APIResponse(data={"result": False, "message": define.ConfigMsg.NOT_INIT})
     return APIResponse(data={
         "config_right": True,
         "result": True,
@@ -34,5 +32,6 @@ async def get_config():
         "log_path": setting.log_path,
         "cwd": os.getcwd(),
         "siyuan": SiyuanConfig().dump(),
-        "cloud_123": Cloud123Config().dump()
+        "cloud_123": Cloud123Config().dump(),
+        "picgo":PicGoConfig().dump()
     })

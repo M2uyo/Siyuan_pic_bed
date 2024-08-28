@@ -4,7 +4,9 @@ import posixpath
 
 from api.base import CommonAsyncRequest, CommonRequest
 from config import Cloud123Config, SiyuanConfig
+from config.remote import PicGoConfig
 from log import get_logger
+from model.api_model import PicGoResponse
 from model.response import Cloud123Response, APIErrorMessage
 from tools.base import SingletonMeta
 from tools.file import get_file_info
@@ -172,10 +174,14 @@ class APICloud123(metaclass=SingletonMeta):
     @auto_header_response
     def move_file_to_dest_dir(cls, file_ids, dest_dir, header=None):
         def Callback(response: Cloud123Response):
+            if response.code == 1 and response.message == APIErrorMessage.文件移动_已在当前文件夹:
+                cls.move_file_to_trash(file_ids)
+                return True
             if response.code == 0:
                 api_log.debug(f"APICloud123.move_file_to_dest_dir | 移动成功 | file_ids:{file_ids}")
             else:
                 api_log.error(f"APICloud123.move_file_to_dest_dir | 移动失败 | {response.info}")
+
             return response.Check()
 
         return Callback, cls.net.Post(
@@ -251,6 +257,35 @@ class APISyncCloud123(APICloud123):
                 "preuploadID": preuploadID,
             })
         )
+
+
+class APIPicGo(metaclass=SingletonMeta):
+    net = CommonRequest()
+
+    # region request
+    @classmethod
+    def upload_file(cls, pic_path):
+        try:
+            response = cls.net.Post(PicGoConfig.picgo_url, data=json.dumps({
+                "list": [
+                    pic_path
+                ]
+            })).json()
+        except Exception as e:
+            api_log.error(f"上传失败 | pic_path:{pic_path} err:{e}")
+            return PicGoResponse(False, None)
+        return cls._on_upload_file(response, pic_path)
+
+    # endregion request
+
+    # region response
+    @staticmethod
+    def _on_upload_file(response, pic_path):
+        if not response["success"]:
+            api_log.error(f"{response['message']} | pic_path:{pic_path}")
+            return PicGoResponse(False, None)
+        return PicGoResponse(True, response["result"][0])
+    # endregion response
 
 
 def _check_token():

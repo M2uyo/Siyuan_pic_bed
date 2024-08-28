@@ -46,7 +46,7 @@ class ActionRemote(metaclass=SingletonMeta):
         Returns:
              {filename: {etag: [file_ids]}}
         """
-        remote_data = cls.load_cache(remote=remote, renew=renew_remote)
+        remote_data = await cls.load_cache(remote=remote, renew=renew_remote)
         return EndPointMap[remote].check_repeat_file(remote_data)
 
     @classmethod

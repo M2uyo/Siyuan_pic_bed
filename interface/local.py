@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import posixpath
+import re
 
 import aiofiles
 
@@ -9,8 +10,9 @@ import setting
 from api.siyuan import APISiyuan
 from base.interface import IBase
 from config import Cloud123Config, SiyuanConfig
+from define import SiyuanBlockType, DataBaseColType
 from define.base import SQLWhere
-from entity.siyuan import SiyuanBlockResource, Record
+from entity.siyuan import SiyuanBlockResource, Record, SiyuanDataBaseResource
 from log import get_logger
 from model.siyuan import ResourceCache
 from tools.file import get_file_info, get_file_info_by_type, async_save_data_to_local_file
@@ -28,7 +30,7 @@ class ISiyuan(IBase):
         """快速获取带有资源的块数据"""
         if not where:
             where = " and ".join([f"markdown like %{Cloud123Config().remote_path}%", SQLWhere.type_in])
-        total_amount = (await APISiyuan.async_sql_query(f"select count(*) as total from blocks b where {where}"))['data'][0]['total']
+        total_amount = (await APISiyuan.async_sql_query(f"select count(*) as total from {SQLWhere.blocks_b} where {where}"))['data'][0]['total']
         resource_dict = {}
 
         async def parse_block_resource(block):
@@ -39,11 +41,32 @@ class ISiyuan(IBase):
 
         interface_log.info(f"ISiyuan.async_quick_get_resource | total_amount:{total_amount}")
         for begin in range(0, total_amount, step):
-            sql = f"select id, markdown, (select content from blocks where id=b.root_id) as title from blocks b where {where} limit {step} offset {begin};"
+            sql = f"select id, markdown, (select content from blocks where id=b.root_id) as title from {SQLWhere.blocks_b} where {where} limit {step} offset {begin};"
             response = await APISiyuan.async_sql_query(sql)
             await asyncio.gather(*(parse_block_resource(block) for block in response['data']))
         interface_log.info(f"ISiyuan.async_quick_get_resource | len:{len(resource_dict)}")
         return resource_dict
+
+    @classmethod
+    async def async_get_database_resource(cls, where):
+        database_block_data = (await APISiyuan.async_sql_query(f"select * from {SQLWhere.blocks_b} where {where}"))['data'][0]
+        if database_block_data['type'] != SiyuanBlockType.av:
+            return
+        data_av_id = re.search(r'data-av-id="([0-9a-z\-]+)"', database_block_data['markdown']).group(1)
+        av_file_path = SiyuanConfig().av_file_path(data_av_id)
+        if not posixpath.exists(av_file_path):
+            return
+        with open(av_file_path, 'r', encoding='utf-8') as fp:
+            database_json_data = json.load(fp)
+        resources = []
+        for single_col in database_json_data["keyValues"]:
+            if single_col["key"]["type"] != DataBaseColType.asset:
+                continue
+            for value in single_col["values"]:
+                resource = SiyuanDataBaseResource()
+                await resource.parse(value) and resources.append(resource)
+
+        return resources, database_json_data, av_file_path
 
     @classmethod
     def is_same_as_record(cls, filename, record_path):
@@ -56,7 +79,7 @@ class ISiyuan(IBase):
     @classmethod
     async def receive(cls, resource: SiyuanBlockResource, log_level=logging.DEBUG):
         """保存资源到思源assets"""
-        if not (web_file_data := await resource.get_file_data()):
+        if not (web_file_data := resource.file):
             return False  # 请求失败
         web_file_info = get_file_info(web_file_data)
         # 检查请求是否成功
@@ -71,7 +94,7 @@ class ISiyuan(IBase):
 
     @classmethod
     async def get_resource_record(cls, keep_ori=False) -> (dict[int, SiyuanBlockResource], dict[int, ResourceCache]):
-        sql_where = SQLWhere.sep.join([SQLWhere.type_in])
+        sql_where = SQLWhere.sep_and.join([SQLWhere.type_in])
         resource_dict = await cls.async_quick_get_resource(keep_ori=keep_ori, where=sql_where)
         cache_path = posixpath.join(SiyuanConfig().record_path, cls.cache_file_name)
         interface_log.info(f"ISiyuan.get_resource_record | path:{cache_path}")
@@ -97,6 +120,28 @@ class ISiyuan(IBase):
 
     # endregion Check Cache
 
+    # region Icon
+    @classmethod
+    async def GetDocByIcon(cls, icon, step=200):
+        where = SQLWhere.sep_and.join([
+            SQLWhere.type_in_f.format(types="'d'"),
+            SQLWhere.ial_like.format(like=rf"%icon=\"{icon}\"%"),
+        ])
+        total_amount = (await APISiyuan.async_sql_query(f"select count(*) as total from {SQLWhere.blocks_b} where {where}"))['data'][0]['total']
+        resource_list = []
+
+        def parse_response(response):
+            for block in response['data']:
+                resource_list.append(block["id"])
+
+        for begin in range(0, total_amount, step):
+            sql = f"select id from {SQLWhere.blocks_b} where {where} limit {step} offset {begin};"
+            parse_response(await APISiyuan.async_sql_query(sql))
+        return resource_list
+
+    # endregion Icon
+
+    # region Private
     @classmethod
     def _GetSaveInfo(cls, save_dir, filename):
         """
@@ -115,3 +160,5 @@ class ISiyuan(IBase):
         save_path = posixpath.join(save_dir, filename)
         link_path = posixpath.join(link_dir, filename)
         return unification_file_path(save_path), unification_file_path(link_path)
+
+    # endregion Private

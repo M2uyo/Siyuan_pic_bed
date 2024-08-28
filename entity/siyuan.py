@@ -10,7 +10,7 @@ import setting
 from config import SiyuanConfig
 from define.base import ResourceType
 from log import get_logger
-from model.siyuan import ResourceCache
+from model.siyuan import ResourceCache, DataBaseResourceInfo
 from tools import string, file
 from tools.base import SingletonMeta
 from tools.file import get_file_name_and_extension, async_get_file_data
@@ -34,6 +34,8 @@ class SiyuanBlockResource:
         self.url = ""  # 资源链接的原始文本   http://xxx.xxx.com/siyuan/Nginx%20image_20220512101137719.png
         self.image_path = ""  # 资源空格转义后路径 http://xxx.xxx.com/siyuan/Nginx_image_20220512101137719.png
         self.filename = ""  # 资源的文件名    Nginx_image_20220512101137719.png
+        self.file_pre_dir = ""  # 资源的文件名的上一级路径 http://xxx.xxx.com/siyuan/
+        self.true_file_path = ""  # 真实能找到的文件路径
 
         self.file: bytes = b""
         self.file_md5: str = ""
@@ -64,14 +66,15 @@ class SiyuanBlockResource:
         if not (file_info := await file.get_file_info_by_type(self.url, self.typ)):
             return False
         self.file, self.file_md5, self.file_size = file_info
+        self.true_file_path = file.get_file_path_by_type(self.url, self.typ)
         return True
 
     def _GetOriginFilename(self):
-        _, file_name, extension = file.get_file_name_and_extension(self.url)
+        self.file_pre_dir, file_name, extension = file.get_file_name_and_extension(self.url)
         self.filename = f"{file_name}{extension}"
 
     async def _GenFileName(self):
-        _, ori_file_name, extension = file.get_file_name_and_extension(self.image_path)
+        self.file_pre_dir, ori_file_name, extension = file.get_file_name_and_extension(self.image_path)
         filename, ori_num = string.get_true_file_name(ori_file_name)
         if custom_name := _GetSourceName(self.resource.replace(self.url, "")):
             # 如果标题或者提示文本匹配成功，使用其替换filename
@@ -111,6 +114,35 @@ class SiyuanBlockResource:
 
     async def get_file_data(self):
         return await async_get_file_data(self.image_path, self.typ)
+
+
+class SiyuanDataBaseResource:
+    def __init__(self):
+        self.urls: dict[int, DataBaseResourceInfo] = {}
+        self.ref = None
+        self.filenames = ""
+
+    async def parse(self, single_col):
+        self.ref = single_col["mAsset"]
+        filenames = []
+        for index, resource in enumerate(self.ref):
+            url = resource["content"]
+            typ = file.get_file_typ(url, url)
+            if not typ:
+                continue
+            _, file_name, extension = file.get_file_name_and_extension(url)
+            filename = f"{file_name}{extension}"
+            if not (file_info := await file.get_file_info_by_type(url, typ)):
+                return False
+            url_record = self.urls.setdefault(index, {
+                "filename": filename,
+                "path": file.get_file_path_by_type(url, typ),
+                "type": typ,
+            })
+            filenames.append(filename)
+            url_record["file"], url_record["md5"], url_record["file_size"] = file_info
+        self.filenames = ", ".join(filenames)
+        return True
 
 
 class Record(metaclass=SingletonMeta):
