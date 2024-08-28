@@ -1,7 +1,8 @@
 import logging
 import posixpath
 
-from entity.siyuan import SiyuanBlockResource
+from entity.siyuan import SiyuanBlockResource, SiyuanDataBaseResource
+from model.siyuan import DataBaseResourceInfo
 from tools.base import SingletonMeta
 from log import get_logger
 
@@ -17,5 +18,23 @@ class IBase(metaclass=SingletonMeta):
         return False
 
     @classmethod
+    def is_same_as_record_database(cls, resource: SiyuanDataBaseResource, record_path: list):
+        exist, not_exist = [], {}
+        filePath = set()
+        for index, url in resource.urls.items():
+            if url["path"] in record_path:
+                exist.append(url)
+            else:
+                not_exist[index] = url
+            filePath.add(url["path"])
+        return exist, not_exist, set(record_path) - filePath
+
+    @classmethod
     async def receive(cls, resource: SiyuanBlockResource, log_level=logging.INFO):
+        """块资源"""
+        raise NotImplementedError()
+
+    @classmethod
+    async def receive_database(cls, urls_info: dict[int, DataBaseResourceInfo], log_level=logging.DEBUG):
+        """数据库资源"""
         raise NotImplementedError()

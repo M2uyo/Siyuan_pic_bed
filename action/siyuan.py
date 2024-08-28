@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 from api.siyuan import APISiyuan
 from control.siyuan import SiyuanControl
@@ -44,6 +45,26 @@ class SiyuanAction(metaclass=SingletonMeta):
             toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_无更改)
         await SiyuanControl.SetCustomRecord(notebook_id, custom_record)
         return resource_dict
+
+    @classmethod
+    async def upload_database_resource(cls, database_id, end_point, toast=True):
+        sql_where = SQLWhere._id.format(id=database_id)
+        resources, database_json_data, av_file_path = await ISiyuan.async_get_database_resource(where=sql_where)
+        if not resources:
+            return
+        custom_record = await SiyuanControl.GetCustomRecord(database_id, [])
+        success_amount = sum(await asyncio.gather(*(
+            SiyuanControl.upload_database_resource(resource, custom_record, end_point_enum=end_point)
+            for resource in resources
+        )))
+        if success_amount:
+            toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_汇总.format(amount=success_amount))
+        else:
+            toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_无更改)
+        with open(av_file_path, 'w', encoding='utf-8') as f:
+            json.dump(database_json_data, f, ensure_ascii=False)
+        await SiyuanControl.SetCustomRecord(database_id, custom_record)
+        return resources
 
     @classmethod
     async def MultiReplaceDocIcon(cls, old_icon, new_icon, toast=True):

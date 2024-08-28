@@ -12,9 +12,13 @@ class SiyuanConfig(metaclass=SingletonMeta):
     # ---------- Sub Dir ----------
     assets_sub_dir = "assets"
     plugin_sub_dir = "plugins"
+    storage_sub_dir = "storage"
+    av_sub_dir = "av"
 
     config_sub_dir = "config"
     record_sub_dir = "record"
+    # ---------- file extension ----------
+    av_file_extension = ".json"
 
     def __init__(self):
         # ---------- Wait Sync Attribute ----------
@@ -23,6 +27,7 @@ class SiyuanConfig(metaclass=SingletonMeta):
         # ---------- Parse ----------
         self.assets_path: str = ""
         self.plugins_path: str = ""
+        self.av_path: str = ""
         self.this_plugin_path: str = ""
         # ---------- local storage data path ----------
         self.config_path: str = ""
@@ -45,6 +50,9 @@ class SiyuanConfig(metaclass=SingletonMeta):
         self.config_path = exist_or_create(posixpath.join(self.this_plugin_path, self.config_sub_dir))
         self.record_path = exist_or_create(posixpath.join(self.config_path, self.record_sub_dir))
         self.init = True
+
+    def av_file_path(self, av_id):
+        return posixpath.join(self.data_dir, self.storage_sub_dir, self.av_sub_dir, f"{av_id}{self.av_file_extension}")
 
     def dump(self) -> dict:
         return {

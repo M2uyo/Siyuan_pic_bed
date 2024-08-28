@@ -18,6 +18,12 @@ class NoteBookModel(SiyuanBaseModel):
     end_point: EndPoint = EndPoint.CLOUD_123
 
 
+class SiyuanDatabaseModel(SiyuanBaseModel):
+    method: str = ""
+    database_id: str = ""
+    end_point: EndPoint = EndPoint.CLOUD_123
+
+
 class SiyuanIconModel(SiyuanBaseModel):
     old_icon: str = ""
     new_icon: str = ""

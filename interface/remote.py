@@ -6,9 +6,9 @@ from operator import itemgetter
 
 from api.base import CommonRequest
 from api.remote import APICloud123, APIPicGo
+from api.siyuan import APISiyuan
 from base.interface import IBase
-from config import Cloud123Config, SiyuanConfig
-from define.base import ResourceType
+from config import Cloud123Config
 from entity.siyuan import SiyuanBlockResource
 from log import get_logger
 from model.response import Cloud123Response, Cloud123FileInfo
@@ -36,20 +36,38 @@ class ICloud123(IBase):
 
     @classmethod
     async def receive(cls, resource: SiyuanBlockResource, log_level=logging.DEBUG):
-        if not (file_data := await resource.get_file_data()):
+        return await cls._receive(resource.file, resource.filename, log_level)
+
+    @classmethod
+    async def receive_database(cls, urls_info, log_level=logging.DEBUG):
+        new_urls = {}
+        for index, url in urls_info.items():
+            if url["path"].startswith(Cloud123Config().remote_path):
+                new_url = url["path"]
+            else:
+                new_url = await cls._receive(url["file"], url["filename"], log_level=log_level)
+            if new_url:
+                new_urls[index] = new_url
+            else:
+                APISiyuan.push_err_msg(f"上传失败: {url['filename']}")
+        return new_urls
+
+    @classmethod
+    async def _receive(cls, file, filename, log_level):
+        if not file:
             return
-        response: Cloud123Response = APICloud123.upload_file(file_data, resource.filename)
+        response: Cloud123Response = APICloud123.upload_file(file, filename)
         if not response:
             return
-        new_path = string.unification_file_path(posixpath.join(Cloud123Config().remote_path, resource.filename))
+        new_path = string.unification_file_path(posixpath.join(Cloud123Config().remote_path, filename))
         if response.is_reuse():
-            remote_log.log(log_level, f"ICloud123.upload | 上传成功 | filename:{resource.filename} data:{response.data}")
+            remote_log.log(log_level, f"ICloud123.upload | 上传成功 | filename:{filename} data:{response.data}")
             return new_path
-        file_split_list, chunk_num = split_file_context(file_data, response.data["sliceSize"])
+        file_split_list, chunk_num = split_file_context(file, response.data["sliceSize"])
         is_async, completed = await cls._MultiUploadFilePart(response.data["preuploadID"], file_split_list, chunk_num)
         if not is_async:
             return new_path
-        await cls._CheckReplace(response.data["preuploadID"], resource.filename, completed)
+        await cls._CheckReplace(response.data["preuploadID"], filename, completed)
         return new_path
 
     # 文件移动
@@ -146,11 +164,21 @@ class ICloud123(IBase):
 class ICloudPicGo(IBase):
     @classmethod
     async def receive(cls, resource: SiyuanBlockResource, log_level=logging.INFO):
-        pic_path = resource.url
-        if resource.typ == ResourceType.SIYUAN:
-            pic_path = posixpath.join(SiyuanConfig().data_dir, pic_path)
-        response = APIPicGo.upload_file(pic_path)
+        return await cls._receive(resource.true_file_path, log_level)
+
+    @classmethod
+    async def receive_database(cls, urls_info, log_level=logging.INFO):
+        new_urls = {}
+        for index, url in urls_info.items():
+            new_url = await cls._receive(url["path"], log_level)
+            if new_url:
+                new_urls[index] = new_url
+        return new_urls
+
+    @classmethod
+    async def _receive(cls, url: str, log_level):
+        response = APIPicGo.upload_file(url)
         if not response.success:
             return
-        remote_log.info(f"ICloudPicGo.receive | 上传成功 | new_path:{response.result}")
+        remote_log.log(log_level, f"ICloudPicGo.receive | 上传成功 | new_path:{response.result}")
         return response.result

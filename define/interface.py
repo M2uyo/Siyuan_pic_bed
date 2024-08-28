@@ -19,3 +19,4 @@ class NotebookMethod:
     下载指定文档图片 = "saveOne"
     上传指定文档图片 = "uploadOne"
     加载文件信息 = "reloadInfo"
+    上传指定数据库中的所有资源文件 = "uploadDatabaseResource"

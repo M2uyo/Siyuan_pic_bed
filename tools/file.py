@@ -1,6 +1,7 @@
 import hashlib
 import os.path
 import pathlib
+import posixpath
 from typing import Optional
 
 import aiofiles
@@ -66,6 +67,12 @@ async def async_get_file_data(file_path, typ=ResourceType.LOCAL):
     elif typ == ResourceType.SIYUAN:
         async with aiofiles.open(os.path.join(SiyuanConfig().data_dir, file_path), "rb") as f:
             return await f.read()
+
+
+def get_file_path_by_type(file_path, typ):
+    if typ == ResourceType.SIYUAN:
+        return posixpath.join(SiyuanConfig().data_dir, file_path)
+    return file_path
 
 
 async def async_save_data_to_local_file(file_path, data):

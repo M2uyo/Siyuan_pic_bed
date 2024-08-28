@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import posixpath
+import re
 
 import aiofiles
 
@@ -9,8 +10,9 @@ import setting
 from api.siyuan import APISiyuan
 from base.interface import IBase
 from config import Cloud123Config, SiyuanConfig
+from define import SiyuanBlockType, DataBaseColType
 from define.base import SQLWhere
-from entity.siyuan import SiyuanBlockResource, Record
+from entity.siyuan import SiyuanBlockResource, Record, SiyuanDataBaseResource
 from log import get_logger
 from model.siyuan import ResourceCache
 from tools.file import get_file_info, get_file_info_by_type, async_save_data_to_local_file
@@ -46,6 +48,27 @@ class ISiyuan(IBase):
         return resource_dict
 
     @classmethod
+    async def async_get_database_resource(cls, where):
+        database_block_data = (await APISiyuan.async_sql_query(f"select * from {SQLWhere.blocks_b} where {where}"))['data'][0]
+        if database_block_data['type'] != SiyuanBlockType.av:
+            return
+        data_av_id = re.search(r'data-av-id="([0-9a-z\-]+)"', database_block_data['markdown']).group(1)
+        av_file_path = SiyuanConfig().av_file_path(data_av_id)
+        if not posixpath.exists(av_file_path):
+            return
+        with open(av_file_path, 'r', encoding='utf-8') as fp:
+            database_json_data = json.load(fp)
+        resources = []
+        for single_col in database_json_data["keyValues"]:
+            if single_col["key"]["type"] != DataBaseColType.asset:
+                continue
+            for value in single_col["values"]:
+                resource = SiyuanDataBaseResource()
+                await resource.parse(value) and resources.append(resource)
+
+        return resources, database_json_data, av_file_path
+
+    @classmethod
     def is_same_as_record(cls, filename, record_path):
         """校验是否已经是siyuan:assets"""
         if posixpath.join(SiyuanConfig.assets_sub_dir, filename) == record_path:
@@ -56,7 +79,7 @@ class ISiyuan(IBase):
     @classmethod
     async def receive(cls, resource: SiyuanBlockResource, log_level=logging.DEBUG):
         """保存资源到思源assets"""
-        if not (web_file_data := await resource.get_file_data()):
+        if not (web_file_data := resource.file):
             return False  # 请求失败
         web_file_info = get_file_info(web_file_data)
         # 检查请求是否成功
