@@ -34,6 +34,7 @@ class SiyuanBlockResource:
         self.url = ""  # 资源链接的原始文本   http://xxx.xxx.com/siyuan/Nginx%20image_20220512101137719.png
         self.image_path = ""  # 资源空格转义后路径 http://xxx.xxx.com/siyuan/Nginx_image_20220512101137719.png
         self.filename = ""  # 资源的文件名    Nginx_image_20220512101137719.png
+        self.file_pre_dir = ""  # 资源的文件名的上一级路径 http://xxx.xxx.com/siyuan/
 
         self.file: bytes = b""
         self.file_md5: str = ""
@@ -67,11 +68,11 @@ class SiyuanBlockResource:
         return True
 
     def _GetOriginFilename(self):
-        _, file_name, extension = file.get_file_name_and_extension(self.url)
+        self.file_pre_dir, file_name, extension = file.get_file_name_and_extension(self.url)
         self.filename = f"{file_name}{extension}"
 
     async def _GenFileName(self):
-        _, ori_file_name, extension = file.get_file_name_and_extension(self.image_path)
+        self.file_pre_dir, ori_file_name, extension = file.get_file_name_and_extension(self.image_path)
         filename, ori_num = string.get_true_file_name(ori_file_name)
         if custom_name := _GetSourceName(self.resource.replace(self.url, "")):
             # 如果标题或者提示文本匹配成功，使用其替换filename

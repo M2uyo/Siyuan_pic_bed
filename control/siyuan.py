@@ -29,7 +29,7 @@ class SiyuanControl(metaclass=SingletonMeta):
     @classmethod
     async def upload_file(cls, resource: SiyuanBlockResource, custom_record, log_level=logging.INFO, end_point_enum=EndPoint.CLOUD_123, toast=True):
         end_point: ICloud123 = EndPointMap[end_point_enum]
-        if end_point.is_same_as_record(resource.filename, custom_record.get(resource.id)):
+        if end_point.is_same_as_record(resource, custom_record.get(resource.id)):
             return False
         if not (new_url := await end_point.receive(resource, log_level)):
             return False
