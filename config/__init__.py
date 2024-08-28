@@ -1,4 +1,4 @@
-from config.remote import Cloud123Config
+from config.remote import Cloud123Config, PicGoConfig
 from config.siyuan import SiyuanConfig
 from model.api_model import ConfigModel
 from tools.base import SingletonMeta
@@ -11,16 +11,15 @@ class ConfigManager(metaclass=SingletonMeta):
     def __init__(self):
         self._siyuan: dict[str, SiyuanConfig] = {}
         self.cloud_123 = Cloud123Config()
-        self.isConfigCompleted = False
-
+        self.picgo = PicGoConfig()
         self.cur_token = None
 
     @property
     def siyuan(self):
         return self._siyuan[self.cur_token]
 
-    def check_token_is_exist(self, token):
-        return token in self._siyuan
+    def get_config(self, token):
+        return self._siyuan.get(token)
 
     def load_config(self, config: ConfigModel):
         _siyuan = self._siyuan.setdefault(config.siyuan.token, SiyuanConfig())
@@ -35,5 +34,4 @@ class ConfigManager(metaclass=SingletonMeta):
         _siyuan.load_config(config.siyuan)
         self.cloud_123.sync_config(config.cloud_123)
         self.cur_token = config.siyuan.token
-        self.isConfigCompleted = True
         return True

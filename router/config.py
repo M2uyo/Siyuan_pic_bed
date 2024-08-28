@@ -25,7 +25,7 @@ async def set_config(request: ConfigModel):
 @router.get("/config")
 async def get_config():
     if not ConfigManager().isConfigCompleted:
-        return APIResponse(data={"result": False, "message": define.ConfigMsg.NOT_INIT})
+        return APIResponse(data={"result": False, "message": define.ConfigMsg.SIYUAN_NOT_INIT})
     return APIResponse(data={
         "config_right": True,
         "result": True,

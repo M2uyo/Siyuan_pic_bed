@@ -13,8 +13,11 @@ class Cloud123Config(metaclass=SingletonMeta):
         self.dir_id: int = 0  # 资源存储目录
         self.history_dir_id: int = 0  # 删除后的目录 0 回收站
         self.remote_path: str = ""
+        self.init = False
 
     def sync_config(self, config: Cloud123ConfigModel):
+        if not config:
+            return
         self.key = {
             "clientID": config.AK,
             "clientSecret": config.SK
@@ -22,6 +25,7 @@ class Cloud123Config(metaclass=SingletonMeta):
         self.dir_id = int(config.dir_id)
         self.history_dir_id = int(config.history_dir_id)
         self.remote_path = config.remote_path
+        self.init = True
 
     def dump(self):
         return {
@@ -37,3 +41,11 @@ class Cloud123Config(metaclass=SingletonMeta):
 
 class PicGoConfig(metaclass=SingletonMeta):
     picgo_url = "http://127.0.0.1:36677/upload"
+
+    def __init__(self):
+        self.remote_path: str = ""
+        self.init = False
+
+    def sync_config(self, config: Cloud123ConfigModel):
+        self.remote_path = config.remote_path
+        self.init = True

@@ -2,6 +2,7 @@ import enum
 
 
 class EndPoint(enum.Enum):
+    NONE = 0
     CLOUD_123 = 1
     PICGO = 2
     SIYUAN = 3

@@ -10,6 +10,7 @@ from define.base import EndPoint
 class SiyuanBaseModel(BaseModel):
     token: str
     toast: bool = True
+    end_point: EndPoint = EndPoint.NONE
 
 
 class NoteBookModel(SiyuanBaseModel):
@@ -41,13 +42,17 @@ class Cloud123ConfigModel(BaseModel):
     remote_path: str
 
 
+class PicGoConfigModel(BaseModel):
+    remote_path: str
+
+
 class SiyuanConfigModel(BaseModel):
     token: str
     data_dir: str
 
 
 class ConfigModel(BaseModel):
-    cloud_123: Cloud123ConfigModel
+    cloud_123: Cloud123ConfigModel = None
     siyuan: SiyuanConfigModel
 
 
