@@ -19,6 +19,8 @@ async def validate_siyuan_init(request: SiyuanBaseModel):
     elif request.endpoint == EndPoint.PICGO:
         if not ConfigManager().picgo.init:
             raise HTTPException(status_code=400, detail=define.ConfigMsg.NOT_INIT.format(name="PicGo"))
+    elif request.endpoint == EndPoint.NONE:
+        raise HTTPException(status_code=400, detail=define.ConfigMsg.ILLEGAL_SOURCE)
     ConfigManager().cur_token = request.token
 
 
