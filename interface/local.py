@@ -62,14 +62,14 @@ class ISiyuan(IBase):
         for single_col in database_json_data["keyValues"]:
             if single_col["key"]["type"] != DataBaseType.asset:
                 continue
-            for value in single_col["values"]:
-                if value["type"] != DataBaseType.asset:
+            for row in single_col["values"]:
+                if row["type"] != DataBaseType.asset:
                     continue
-                if DataBaseType.asset not in value:
-                    interface_log.warning(f"ISiyuan.async_get_database_resource | 未找到资源key | key:{DataBaseType.asset} id:{value['id']}")
+                if DataBaseType.asset not in row:
+                    interface_log.warning(f"ISiyuan.async_get_database_resource | 未找到资源key | key:{DataBaseType.asset} row_resource:{row}")
                     continue
                 resource = SiyuanDataBaseResource()
-                await resource.parse(value) and resources.append(resource)
+                await resource.parse(row) and resources.append(resource)
 
         return resources, database_json_data, av_file_path
 
