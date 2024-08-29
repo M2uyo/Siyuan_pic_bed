@@ -9,6 +9,7 @@ from api.remote import APICloud123, APIPicGo
 from api.siyuan import APISiyuan
 from base.interface import IBase
 from config import Cloud123Config
+from define import SiyuanMessage
 from entity.siyuan import SiyuanBlockResource
 from log import get_logger
 from model.response import Cloud123Response, Cloud123FileInfo
@@ -39,13 +40,13 @@ class ICloud123(IBase):
         return await cls._receive(resource.file, resource.filename, log_level)
 
     @classmethod
-    async def receive_database(cls, urls_info, log_level=logging.DEBUG):
+    async def receive_database(cls, urls_info, log_level=logging.DEBUG, toast=True):
         new_urls = {}
         for index, url in urls_info.items():
             if url["path"].startswith(Cloud123Config().remote_path):
                 new_url = url["path"]
             else:
-                new_url = await cls._receive(url["file"], url["filename"], log_level=log_level)
+                new_url = await cls._receive(url["file"], url["filename"], log_level=log_level, toast=toast)
             if new_url:
                 new_urls[index] = new_url
             else:
@@ -53,7 +54,7 @@ class ICloud123(IBase):
         return new_urls
 
     @classmethod
-    async def _receive(cls, file, filename, log_level):
+    async def _receive(cls, file, filename, log_level, toast=True):
         if not file:
             return
         response: Cloud123Response = APICloud123.upload_file(file, filename)
@@ -62,6 +63,7 @@ class ICloud123(IBase):
         new_path = string.unification_file_path(posixpath.join(Cloud123Config().remote_path, filename))
         if response.is_reuse():
             remote_log.log(log_level, f"ICloud123.upload | 上传成功 | filename:{filename} data:{response.data}")
+            toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_单文件.format(filenames=filename))
             return new_path
         file_split_list, chunk_num = split_file_context(file, response.data["sliceSize"])
         is_async, completed = await cls._MultiUploadFilePart(response.data["preuploadID"], file_split_list, chunk_num)
@@ -167,18 +169,19 @@ class ICloudPicGo(IBase):
         return await cls._receive(resource.true_file_path, log_level)
 
     @classmethod
-    async def receive_database(cls, urls_info, log_level=logging.INFO):
+    async def receive_database(cls, urls_info, log_level=logging.INFO, toast=True):
         new_urls = {}
         for index, url in urls_info.items():
-            new_url = await cls._receive(url["path"], log_level)
+            new_url = await cls._receive(url["path"], log_level, toast=toast)
             if new_url:
                 new_urls[index] = new_url
         return new_urls
 
     @classmethod
-    async def _receive(cls, url: str, log_level):
+    async def _receive(cls, url: str, log_level, toast=True):
         response = APIPicGo.upload_file(url)
         if not response.success:
             return
         remote_log.log(log_level, f"ICloudPicGo.receive | 上传成功 | new_path:{response.result}")
+        toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_单列文件.format(filenames=response.result))
         return response.result

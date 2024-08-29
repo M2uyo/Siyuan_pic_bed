@@ -16,40 +16,39 @@ control_log = get_logger("control")
 class SiyuanControl(metaclass=SingletonMeta):
 
     @classmethod
-    async def download_file(cls, resource: SiyuanBlockResource, custom_record, log_level=logging.INFO, end_point_enum=EndPoint.SIYUAN, toast=True):
+    async def download_file(cls, resource: SiyuanBlockResource, custom_record, log_level=logging.INFO, endpoint_enum=EndPoint.SIYUAN, toast=True):
         if resource.typ != ResourceType.WEB:
             return  # 本地资源  跳过
-        end_point: ISiyuan = EndPointMap[end_point_enum]
-        if not (new_url := await end_point.receive(resource, log_level)):
+        endpoint: ISiyuan = EndPointMap[endpoint_enum]
+        if not (new_url := await endpoint.receive(resource, log_level)):
             return False
         toast and await APISiyuan.async_push_msg(SiyuanMessage.下载成功_单文件.format(filename=resource.filename))
         await cls._UpdateInfo(resource, new_url, custom_record)
         return True
 
     @classmethod
-    async def upload_file(cls, resource: SiyuanBlockResource, custom_record, log_level=logging.INFO, end_point_enum=EndPoint.CLOUD_123, toast=True):
-        end_point: ICloud123 = EndPointMap[end_point_enum]
-        if end_point.is_same_as_record(resource, custom_record.get(resource.id)):
+    async def upload_file(cls, resource: SiyuanBlockResource, custom_record, log_level=logging.INFO, endpoint_enum=EndPoint.CLOUD_123, toast=True):
+        endpoint: ICloud123 = EndPointMap[endpoint_enum]
+        if endpoint.is_same_as_record(resource, custom_record.get(resource.id)):
             return False
-        if not (new_url := await end_point.receive(resource, log_level)):
+        if not (new_url := await endpoint.receive(resource, log_level)):
             return False
         toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_单文件.format(filename=resource.filename))
         await cls._UpdateInfo(resource, new_url, custom_record)
         return True
 
     @classmethod
-    async def upload_database_resource(cls, resource: SiyuanDataBaseResource, custom_record: list, log_level=logging.INFO, end_point_enum=EndPoint.CLOUD_123, toast=True):
-        end_point = EndPointMap[end_point_enum]
-        config = EndPointConfigMap[end_point_enum]
-        exist, not_exist, redundant = end_point.is_same_as_record_database(resource, config.remote_path, custom_record)
+    async def upload_database_resource(cls, resource: SiyuanDataBaseResource, custom_record: list, log_level=logging.INFO, endpoint_enum=EndPoint.CLOUD_123, toast=True):
+        endpoint = EndPointMap[endpoint_enum]
+        config = EndPointConfigMap[endpoint_enum]
+        exist, not_exist, redundant = endpoint.is_same_as_record_database(resource, config.remote_path, custom_record)
         if not not_exist:
             if redundant:
                 for url in redundant:
                     custom_record.remove(url)
             return 0
-        if not (new_urls := await end_point.receive_database(not_exist, log_level)):
+        if not (new_urls := await endpoint.receive_database(not_exist, log_level, toast)):
             return 0
-        toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_单列文件.format(filenames=resource.filenames))
         await cls._UploadDatabaseInfo(resource, new_urls, custom_record)
         return len(new_urls)
 

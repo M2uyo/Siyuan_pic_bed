@@ -29,9 +29,9 @@ async def repeat(request: RemoteModel):
 async def redundancy(request: RemoteModel):
     """检查本地未引用的云盘资源"""
     siyuan_cache, remote_cache = await load_cache(request.remote, request.renew_siyuan, request.renew_remote)
-    end_point = EndPointMap[request.remote]
+    endpoint = EndPointMap[request.remote]
     siyuan_names = {s["filename"] for s in siyuan_cache.values()}
-    no_ref_ids = end_point.check_no_reference(siyuan_names, remote_cache)
+    no_ref_ids = endpoint.check_no_reference(siyuan_names, remote_cache)
     if request.delete:
         ActionRemote.del_repeat(no_ref_ids, save_amount=0)
     data = {"result": True, "message": define.IMsg.OK}

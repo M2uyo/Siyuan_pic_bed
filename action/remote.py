@@ -18,8 +18,8 @@ class ActionRemote(metaclass=SingletonMeta):
 
     @classmethod
     def renew_cache(cls, remote=EndPoint.CLOUD_123) -> list[Cloud123FileInfo]:
-        end_point = EndPointMap[remote]
-        files = end_point.get_all_file()
+        endpoint = EndPointMap[remote]
+        files = endpoint.get_all_file()
         with open(posixpath.join(SiyuanConfig().record_path, f"{remote.name.lower()}.json"), "w", encoding=setting.UTF8) as f:
             json.dump(files, f, ensure_ascii=False, indent=4)
 
@@ -72,5 +72,5 @@ class ActionRemote(metaclass=SingletonMeta):
                 for _id in wait_del_ids:
                     action_log.info(f"ActionRemote.del_repeat | filename:{filename} file_id:{_id} etag:{etag}")
                 true_del_ids.extend(wait_del_ids)
-        end_point = EndPointMap[remote]
-        end_point.delete_files(true_del_ids)
+        endpoint = EndPointMap[remote]
+        endpoint.delete_files(true_del_ids)

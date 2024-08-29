@@ -31,9 +31,9 @@ class SiyuanAction(metaclass=SingletonMeta):
         return resource_dict
 
     @classmethod
-    async def upload_single_notebook_resource(cls, notebook_id, end_point, toast=True):
+    async def upload_single_notebook_resource(cls, notebook_id, endpoint, toast=True):
         sql_where = SQLWhere.sep_and.join([SQLWhere.root_id.format(root_id=notebook_id), SQLWhere.type_in])
-        return await cls._Upload(notebook_id, sql_where, end_point, toast)
+        return await cls._Upload(notebook_id, sql_where, endpoint, toast)
 
     @classmethod
     async def upload_block_resource(cls, notebook_id, block_id, endpoint, toast=True):
@@ -41,14 +41,14 @@ class SiyuanAction(metaclass=SingletonMeta):
         return await cls._Upload(notebook_id, sql_where, endpoint, toast)
 
     @classmethod
-    async def upload_database_resource(cls, database_id, end_point, toast=True):
+    async def upload_database_resource(cls, database_id, endpoint, toast=True):
         sql_where = SQLWhere._id.format(id=database_id)
         resources, database_json_data, av_file_path = await ISiyuan.async_get_database_resource(where=sql_where)
         if not resources:
             return
         custom_record = await SiyuanControl.GetCustomRecord(database_id, [])
         success_amount = sum(await asyncio.gather(*(
-            SiyuanControl.upload_database_resource(resource, custom_record, end_point_enum=end_point)
+            SiyuanControl.upload_database_resource(resource, custom_record, endpoint_enum=endpoint)
             for resource in resources
         )))
         if success_amount:
@@ -61,11 +61,11 @@ class SiyuanAction(metaclass=SingletonMeta):
         return resources
 
     @classmethod
-    async def _Upload(cls, notebook_id, sql_where, end_point, toast=True):
+    async def _Upload(cls, notebook_id, sql_where, endpoint, toast=True):
         resource_dict = await ISiyuan.async_quick_get_resource(where=sql_where)
         custom_record: CustomRecordT = await SiyuanControl.GetCustomRecord(notebook_id)
         success_amount = sum(await asyncio.gather(*(
-            SiyuanControl.upload_file(resource, custom_record, end_point_enum=end_point)
+            SiyuanControl.upload_file(resource, custom_record, endpoint_enum=endpoint)
             for resource in resource_dict.values()
         )))
         if success_amount:

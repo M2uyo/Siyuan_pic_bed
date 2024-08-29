@@ -23,7 +23,7 @@ async def siyuan_notebooks(request: NoteBookModel):
         return APIResponse(data={"result": False, "message": define.IMsg.BAN})
     elif request.method == define.NotebookMethod.上传指定文档图片:
         # try:
-        await SiyuanAction.upload_single_notebook_resource(request.notebook_id, end_point=request.end_point)
+        await SiyuanAction.upload_single_notebook_resource(request.notebook_id, endpoint=request.endpoint)
         # except Exception as e:
         #     await APISiyuan.push_err_msg(f"上传失败: {str(e)}")
         #     return APIResponse({"result": False, "message": str(e)})
@@ -44,7 +44,7 @@ async def siyuan_blocks(request: SiyuanBlocksModel):
 @router.post("/database")
 async def siyuan_database(request: SiyuanDatabaseModel):
     if request.method == define.NotebookMethod.上传指定数据库中的所有资源文件:
-        await SiyuanAction.upload_database_resource(request.database_id, end_point=request.end_point)
+        await SiyuanAction.upload_database_resource(request.database_id, endpoint=request.endpoint)
         Record().save()
         return APIResponse(data={"result": True, "message": define.IMsg.OK})
 

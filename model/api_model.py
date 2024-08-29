@@ -10,13 +10,13 @@ from define.base import EndPoint
 class SiyuanBaseModel(BaseModel):
     token: str
     toast: bool = True
-    end_point: EndPoint = EndPoint.NONE
+    endpoint: EndPoint = EndPoint.NONE
 
 
 class NoteBookModel(SiyuanBaseModel):
     method: str = ""
     notebook_id: str = ""
-    end_point: EndPoint = EndPoint.CLOUD_123
+    endpoint: EndPoint = EndPoint.CLOUD_123
 
 
 class SiyuanDatabaseModel(SiyuanBaseModel):
