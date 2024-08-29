@@ -4,7 +4,7 @@ import define
 from action.siyuan import SiyuanAction
 from entity.siyuan import Record
 from interface import ISiyuan
-from model.api_model import APIResponse, NoteBookModel, SiyuanIconModel, SiyuanDatabaseModel
+from model.api_model import APIResponse, NoteBookModel, SiyuanIconModel, SiyuanDatabaseModel, SiyuanBlocksModel
 
 router = APIRouter()
 
@@ -34,6 +34,12 @@ async def siyuan_notebooks(request: NoteBookModel):
         await ISiyuan.get_resource_record(keep_ori=True)
         return APIResponse(data={"result": True, "message": define.IMsg.OK})
 
+
+@router.post("/blocks")
+async def siyuan_blocks(request: SiyuanBlocksModel):
+    if request.method == define.BlockMethod.上传指定块资源:
+        await SiyuanAction.upload_block_resource(request.notebook_id, request.block_id, endpoint=request.endpoint)
+        return APIResponse(data={"result": True, "message": define.IMsg.OK})
 
 @router.post("/database")
 async def siyuan_database(request: SiyuanDatabaseModel):

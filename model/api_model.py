@@ -22,7 +22,14 @@ class NoteBookModel(SiyuanBaseModel):
 class SiyuanDatabaseModel(SiyuanBaseModel):
     method: str = ""
     database_id: str = ""
-    end_point: EndPoint = EndPoint.CLOUD_123
+    endpoint: EndPoint = EndPoint.CLOUD_123
+
+
+class SiyuanBlocksModel(SiyuanBaseModel):
+    method: str = ""
+    notebook_id: str = ""
+    block_id: str = ""
+    endpoint: EndPoint = EndPoint.CLOUD_123
 
 
 class SiyuanIconModel(SiyuanBaseModel):
