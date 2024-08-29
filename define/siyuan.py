@@ -20,5 +20,7 @@ class SiyuanBlockType:
     av = 'av'
 
 
-class DataBaseColType:
+class DataBaseType:
     asset = "mAsset"
+    file = "file"
+    image = "image"

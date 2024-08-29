@@ -10,7 +10,7 @@ import setting
 from api.siyuan import APISiyuan
 from base.interface import IBase
 from config import Cloud123Config, SiyuanConfig
-from define import SiyuanBlockType, DataBaseColType
+from define import SiyuanBlockType, DataBaseType
 from define.base import SQLWhere
 from entity.siyuan import SiyuanBlockResource, Record, SiyuanDataBaseResource
 from log import get_logger
@@ -60,14 +60,18 @@ class ISiyuan(IBase):
             database_json_data = json.load(fp)
         resources = []
         for single_col in database_json_data["keyValues"]:
-            if single_col["key"]["type"] != DataBaseColType.asset:
+            if single_col["key"]["type"] != DataBaseType.asset:
                 continue
             for value in single_col["values"]:
+                if value["type"] != DataBaseType.asset:
+                    continue
+                if DataBaseType.asset not in value:
+                    interface_log.warning(f"ISiyuan.async_get_database_resource | 未找到资源key | key:{DataBaseType.asset} id:{value['id']}")
+                    continue
                 resource = SiyuanDataBaseResource()
                 await resource.parse(value) and resources.append(resource)
 
         return resources, database_json_data, av_file_path
-
 
     @classmethod
     async def receive(cls, resource: SiyuanBlockResource, log_level=logging.DEBUG):
