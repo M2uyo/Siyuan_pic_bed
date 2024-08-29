@@ -68,13 +68,6 @@ class ISiyuan(IBase):
 
         return resources, database_json_data, av_file_path
 
-    @classmethod
-    def is_same_as_record(cls, filename, record_path):
-        """校验是否已经是siyuan:assets"""
-        if posixpath.join(SiyuanConfig.assets_sub_dir, filename) == record_path:
-            interface_log.debug(f"ICloud123.is_same_as_record | filename:{filename}")
-            return True
-        return False
 
     @classmethod
     async def receive(cls, resource: SiyuanBlockResource, log_level=logging.DEBUG):
