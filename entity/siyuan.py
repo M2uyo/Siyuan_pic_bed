@@ -28,7 +28,7 @@ class SiyuanBlockResource:
     def __init__(self, block):
         self.id = block["id"]
         self.markdown = block["markdown"]
-        self.prefix = block["title"]
+        self.prefix = string.replace_special_characters(block["title"])
         self.typ: Optional[ResourceType] = None
         # ---------- 资源解析 ----------
         self.resource = ""  # 资源的原始文本  ![](http://xxx.xxx.com/siyuan/Nginx%20image_20220512101137719.png)

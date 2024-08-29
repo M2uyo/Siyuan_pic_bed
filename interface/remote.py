@@ -63,7 +63,7 @@ class ICloud123(IBase):
         new_path = string.unification_file_path(posixpath.join(Cloud123Config().remote_path, filename))
         if response.is_reuse():
             remote_log.log(log_level, f"ICloud123.upload | 上传成功 | filename:{filename} data:{response.data}")
-            toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_单文件.format(filenames=filename))
+            toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_单文件.format(filename=filename))
             return new_path
         file_split_list, chunk_num = split_file_context(file, response.data["sliceSize"])
         is_async, completed = await cls._MultiUploadFilePart(response.data["preuploadID"], file_split_list, chunk_num)
