@@ -68,8 +68,11 @@ class EmptyModel(BaseModel):
     pass
 
 
-class RemoteModel(BaseModel):
+class RemoteBaseModel(BaseModel):
     remote: EndPoint
+
+
+class RemoteModel(RemoteBaseModel):
     renew_siyuan: bool = False
     renew_remote: bool = False
     show: bool = False

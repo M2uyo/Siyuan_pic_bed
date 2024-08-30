@@ -4,7 +4,7 @@ import define
 from action import load_cache, ActionRemote
 from interface import EndPointMap
 from log import get_logger
-from model.api_model import RemoteModel, APIResponse
+from model.api_model import RemoteModel, APIResponse, RemoteBaseModel
 
 router = APIRouter()
 
@@ -41,6 +41,6 @@ async def redundancy(request: RemoteModel):
 
 
 @router.post("/reload")
-async def cloud_123(request: RemoteModel):
+async def reload(request: RemoteBaseModel):
     ActionRemote.renew_cache(request.remote)
     return APIResponse(data={"result": True, "message": define.IMsg.OK})

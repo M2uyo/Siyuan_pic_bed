@@ -43,3 +43,7 @@ class IBase(metaclass=SingletonMeta):
     async def receive_database(cls, urls_info: dict[int, DataBaseResourceInfo], log_level=logging.DEBUG):
         """数据库资源"""
         raise NotImplementedError()
+
+    @classmethod
+    def get_all_file(cls):
+        raise NotImplementedError()
