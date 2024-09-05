@@ -18,12 +18,14 @@ class SiyuanConfig(metaclass=SingletonMeta):
 
     config_sub_dir = "config"
     record_sub_dir = "record"
-    # ---------- file extension ----------
+    # ---------- file extension ---------- 
     av_file_extension = ".json"
+
+    save_pre_path = assets_sub_dir + "/"
 
     def __init__(self):
         # ---------- Wait Sync Attribute ----------
-        self.header: dict = {}
+        self.header: dict[str, str] = {}
         self.data_dir: str = ""
         # ---------- Parse ----------
         self.assets_path: str = ""

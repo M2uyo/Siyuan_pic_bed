@@ -13,8 +13,8 @@ class IBase(metaclass=SingletonMeta):
     config = None
 
     @classmethod
-    def is_same_as_record(cls, resource: SiyuanBlockResource, record_path):
-        if posixpath.join(resource.file_pre_dir, resource.filename) == record_path:
+    def is_same_as_record(cls, resource: SiyuanBlockResource, pre_dir, record_path):
+        if posixpath.join(pre_dir, resource.filename) == record_path:
             cloud_log.debug(f"IBase.is_same_as_record | filename:{resource.filename}")
             return True
         return False

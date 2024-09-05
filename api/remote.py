@@ -67,7 +67,7 @@ class APICloud123(metaclass=SingletonMeta):
 
         def CallBack(response: Cloud123Response):
             if response.code == 1 and response.message == APIErrorMessage.文件重复:
-                remote_file = cls.net.Get(posixpath.join(Cloud123Config().remote_path + filename), "APICloud123.upload_file")
+                remote_file = cls.net.Get(posixpath.join(Cloud123Config().save_pre_path + filename), "APICloud123.upload_file")
                 if remote_file and get_file_info(remote_file.content) == (etag, file_size):
                     response.reuse = True
                     return True

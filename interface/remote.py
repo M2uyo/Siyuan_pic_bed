@@ -43,7 +43,7 @@ class ICloud123(IBase):
     async def receive_database(cls, urls_info, log_level=logging.DEBUG, toast=True):
         new_urls = {}
         for index, url in urls_info.items():
-            if url["path"].startswith(Cloud123Config().remote_path):
+            if url["path"].startswith(Cloud123Config().save_pre_path):
                 new_url = url["path"]
             else:
                 new_url = await cls._receive(url["file"], url["filename"], log_level=log_level, toast=toast)
@@ -60,7 +60,7 @@ class ICloud123(IBase):
         response: Cloud123Response = APICloud123.upload_file(file, filename)
         if not response:
             return
-        new_path = string.unification_file_path(posixpath.join(Cloud123Config().remote_path, filename))
+        new_path = string.unification_file_path(posixpath.join(Cloud123Config().save_pre_path, filename))
         if response.is_reuse():
             remote_log.log(log_level, f"ICloud123.upload | 上传成功 | filename:{filename} data:{response.data}")
             toast and await APISiyuan.async_push_msg(SiyuanMessage.上传成功_单文件.format(filename=filename))

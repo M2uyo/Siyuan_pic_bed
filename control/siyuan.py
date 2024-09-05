@@ -29,7 +29,8 @@ class SiyuanControl(metaclass=SingletonMeta):
     @classmethod
     async def upload_file(cls, resource: SiyuanBlockResource, custom_record, log_level=logging.INFO, endpoint_enum=EndPoint.CLOUD_123, toast=True):
         endpoint: ICloud123 = EndPointMap[endpoint_enum]
-        if endpoint.is_same_as_record(resource, custom_record.get(resource.id)):
+        endPointConfig = EndPointConfigMap[endpoint_enum]
+        if endpoint.is_same_as_record(resource, endPointConfig.save_pre_path, custom_record.get(resource.id)):
             return False
         if not (new_url := await endpoint.receive(resource, log_level)):
             return False
@@ -41,7 +42,7 @@ class SiyuanControl(metaclass=SingletonMeta):
     async def upload_database_resource(cls, resource: SiyuanDataBaseResource, custom_record: list, log_level=logging.INFO, endpoint_enum=EndPoint.CLOUD_123, toast=True):
         endpoint = EndPointMap[endpoint_enum]
         config = EndPointConfigMap[endpoint_enum]
-        exist, not_exist, redundant = endpoint.is_same_as_record_database(resource, config.remote_path, custom_record)
+        exist, not_exist, redundant = endpoint.is_same_as_record_database(resource, config.save_pre_path, custom_record)
         if not not_exist:
             if redundant:
                 for url in redundant:

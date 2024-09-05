@@ -29,7 +29,7 @@ class ISiyuan(IBase):
     async def async_quick_get_resource(cls, step=200, keep_ori=False, where=None) -> dict[int, SiyuanBlockResource]:
         """快速获取带有资源的块数据"""
         if not where:
-            where = " and ".join([f"markdown like %{Cloud123Config().remote_path}%", SQLWhere.type_in])
+            where = " and ".join([f"markdown like %{Cloud123Config().save_pre_path}%", SQLWhere.type_in])
         total_amount = (await APISiyuan.async_sql_query(f"select count(*) as total from {SQLWhere.blocks_b} where {where}"))['data'][0]['total']
         resource_dict = {}
 
