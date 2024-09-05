@@ -1,3 +1,4 @@
+import aiohttp
 import requests
 
 from log import get_logger
@@ -17,6 +18,10 @@ class CommonAsyncRequest(metaclass=SingletonMeta):
         session = GetAioSession()
         try:
             response = await session.get(url)
+        except aiohttp.client_exceptions.ClientConnectorError:
+            from api.siyuan import APISiyuan
+            await APISiyuan.async_push_err_msg(f"url:{url} 请求超时")
+            return
         except Exception as e:
             api_log.error(f"{_from} | url:{url} e:{e}")
             return
